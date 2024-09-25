@@ -18,18 +18,21 @@ class Client
         std::string _NickName;
         std::string _UserName;
         std::string sednBuffer;
+        int fd;
     public:
         char buffer[1024];
         Client();
-        Client(const std::string nickname, const std::string username);
+        Client(const std::string nickname, const std::string username, int fd);
         Client(const Client &other);
         ~Client();
         Client& operator=(const Client &other);
 
         std::string getNickName();
         std::string getUserName();
+        int getFD();
         void setNickName(const std::string nickname);
         void setUserName(const std::string username);
+        void setFD(int fdclient);
         void setSendBuffer(std::string const &buff);
         std::string SearchNext(std::string searched);
 };

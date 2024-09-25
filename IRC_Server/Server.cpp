@@ -79,12 +79,13 @@ void Server::CheckForIncomingConnection()
                 if(_Password != client.SearchNext("PASS"))
                 {
                     close(new_socket);
-                    // std::cout << "Invalid Password : {" <<client.SearchNext("PASS")<< "}" <<std::endl;
-                    std::cout << "valid Password : {" <<_Password<<"}" <<std::endl;
+                    std::cout << "Invalid Password : {" <<client.SearchNext("PASS")<< "}" <<std::endl;
+                    // std::cout << "valid Password : {" <<_Password<<"}" <<std::endl;
                 }else
                 {
                     client.setNickName(client.SearchNext("NICK"));
                     client.setUserName(client.SearchNext("USER"));
+                    client.setFD(new_socket);
                     _Clients[new_socket] = client;
                     std::cout << "New connection on socket " << new_socket << std::endl;    
                 }

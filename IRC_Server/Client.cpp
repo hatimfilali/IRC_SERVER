@@ -2,7 +2,7 @@
 
 
 Client::Client(){}
-Client::Client(const std::string nickname, const std::string username):_NickName(nickname) , _UserName(username){}
+Client::Client(const std::string nickname, const std::string username, int fdclient):_NickName(nickname) , _UserName(username), fd(fdclient){}
 Client::Client(const Client &other)
 {
         *this = other;
@@ -27,6 +27,10 @@ std::string Client::getUserName()
 {
     return _UserName;
 }
+int Client::getFD()
+{
+    return fd;
+}
 
 void Client::setNickName(const std::string nickname)
 {
@@ -36,6 +40,10 @@ void Client::setNickName(const std::string nickname)
 void Client::setUserName(const std::string username)
 {
     _UserName = username;
+}
+void Client::setFD(int fdcleint)
+{
+    fd = fdcleint;
 }
 
 std::string Client::SearchNext(std::string searched)
