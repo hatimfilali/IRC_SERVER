@@ -26,10 +26,15 @@ void addChannel(Server *server, std::string channelName);
 std::string retrieveKey(std::string msg);
 void addClientToChannel(Server *server, std::string &channelName, Client &client);
 void sendChannelInfo(Server *server, Channel &channel, std::string channelName, Client &client);
+std::string getKickedName (std::string msg);
+std::string getReason(std::string msg);
+
 
 //OPERATOR COMMANDES
 void invite(Server *server, int const client_fd, cmd_struct cmd_info);
 void join(Server *server, int client_fd, cmd_struct cmd_info);
+void  privmsg(Server *server, int const client_fd, cmd_struct cmd_info);
+void kick(Server *server, int const client_fd, cmd_struct cmd_info);
 
 
 #endif

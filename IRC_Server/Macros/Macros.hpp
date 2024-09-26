@@ -24,10 +24,25 @@
 #define ERR_CHANNELISFULL(client, channel) ("471 " + client + " #" + channel + " :Cannot joinn channel (+l)\r\n")
 #define RPL_NAMEREPLY(client, channel, list_of_members) (":localhost 353 " + client + " #" + channel + " :" + list_of_members + "\r\n")
 #define RPL_ENDOFNAMES(client, channel) (":localhost " + client + " #" + channel + " :End of names list\r\n")
+
 //TOPIC
 #define RPL_TOPIC(client, channel, topic) (":localhost 332 " + client + " #" + channel + " " + topic + "\r\n")
+
+//PRIVMSG
+#define ERR_NORECIPIENT(client) ("411 " + client + " :No recipieent given PRIVMSG")
+#define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
+#define ERR_NOSUCHNICK(client, target) ("401 " + client + " " + target + " :No such nick/channel\r\n")
+#define RPL_PRIVMSG(nick, username, target, message) (":" + nick + "!" + username + "@localhost PRIVMSG " + target + message + "\r\n")
+
+
+//KICK
+#define ERR_USERNOTINCHANNEL(client, nickname, channel) ("441 " + client + " " + nickname + " #" + channel + " :They arn't on that channel\r\n")
+#define ERR_NOTCHANNELOP(client, channel) (":localhost 482 " + client + " #" + channel + " :You are not the channel operator\r\n")
+#define RPL_KICK(user_id, channel, kicked, reason) (user_id + " KICK #" + channel + " " + kicked + " " + reason + "\r\n")
 
 
 
 #endif
+
+
 

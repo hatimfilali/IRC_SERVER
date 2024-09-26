@@ -183,3 +183,21 @@ void sendChannelInfo(Server *server, Channel &channel, std::string channelName, 
         member++;
     }
 }
+
+std::string getKickedName(std::string msg) {
+    std::string kickedName;
+
+    if(msg[0] == ' ')
+        msg.erase(0, 1);
+    kickedName  = msg.substr(msg.find(' ') + 1, (msg.find(':') - 1 - msg.find(' ') + 1));
+    return kickedName;
+}
+
+std::string getReason(std::string msg) {
+    std::string reason;
+    
+    reason.clear();
+    if (msg.find(":") != std::string::npos)
+        reason.append(msg, msg.find(":" + 1, std::string::npos));
+    return reason;
+}
