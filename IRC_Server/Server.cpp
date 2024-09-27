@@ -119,6 +119,21 @@ void Server::GetMsgFromClients()
     }
 }
 
+void Server::SendResponse()
+{
+    for(std::map<int,Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)
+    {
+        if(it->second.getsendReady() == true)
+        {
+            ssize_t bytes_sent = send(it->first, it->second.getsednBuffer().c_str(), strlen(it->second.getsednBuffer().c_str()), 0);
+            if (bytes_sent < 0) {
+                std::cout << "Got error while sending data to client"<<std::endl;
+            }
+            it->second.setsendReady(false);
+        }
+    }
+}
+
 void Server::CloseSocket()
 {
     for(std::map<int, Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)

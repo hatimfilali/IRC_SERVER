@@ -30,10 +30,14 @@ class Client
 
         std::string getNickName();
         std::string getUserName();
+        std::string getsednBuffer();
+        bool getsendReady();
         int getFD();
+
         void setNickName(const std::string nickname);
         void setUserName(const std::string username);
         void setFD(int fdclient);
+        void setsendReady(bool _sendReady);
         void setSendBuffer(std::string const &buff);
         std::string SearchNext(std::string searched);
 };

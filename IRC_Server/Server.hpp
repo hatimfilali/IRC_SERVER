@@ -32,6 +32,7 @@ class Server
         void AddTo_FD_Set();
         void CheckForIncomingConnection();
         void GetMsgFromClients();
+        void SendResponse();
         void CloseSocket();
 };
 

@@ -27,9 +27,17 @@ std::string Client::getUserName()
 {
     return _UserName;
 }
+std::string Client::getsednBuffer()
+{
+    return sednBuffer;
+}
 int Client::getFD()
 {
     return fd;
+}
+bool Client::getsendReady()
+{
+    return sendReady;
 }
 
 void Client::setNickName(const std::string nickname)
@@ -44,6 +52,10 @@ void Client::setUserName(const std::string username)
 void Client::setFD(int fdcleint)
 {
     fd = fdcleint;
+}
+void Client::setsendReady(bool _sendReady)
+{
+    sendReady = _sendReady;
 }
 
 std::string Client::SearchNext(std::string searched)
