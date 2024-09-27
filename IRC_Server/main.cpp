@@ -20,6 +20,8 @@ int main(int ac, char** av)
             server.AddTo_FD_Set();
             server.CheckForIncomingConnection();
             server.GetMsgFromClients();
+            server.SendResponse();
+            
             
         }
         server.CloseSocket();

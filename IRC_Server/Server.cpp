@@ -87,7 +87,7 @@ void Server::CheckForIncomingConnection()
                     client.setUserName(client.SearchNext("USER"));
                     client.setFD(new_socket);
                     _Clients[new_socket] = client;
-                    std::cout << "New connection on socket " << new_socket << std::endl;    
+                    std::cout << "New connection on socket " << _Clients[new_socket].getNickName() << std::endl;    
                 }
             }
         }
@@ -99,11 +99,15 @@ void Server::CheckForIncomingConnection()
 
 void Server::GetMsgFromClients()
 {
+    // std::cout << "hnaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << std::endl;
     for(std::map<int, Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)
     {
         if (FD_ISSET(it->first, &read_fds))
         {
-            ssize_t bytes_received = recv(it->first, it->second.buffer, sizeof(it->first, it->second.buffer), 0);
+            ssize_t bytes_received = recv(it->first, it->second.buffer, sizeof(it->second.buffer)-1, 0);
+            it->second.buffer[bytes_received] = '\0';
+            
+
             if(bytes_received < 0)
                 std::cout << "Got error while receiving data from client"<<std::endl;
             else if(bytes_received == 0)
@@ -113,7 +117,7 @@ void Server::GetMsgFromClients()
                 //hna radi dir l code nta3ek
                 getCommandLine(this, it->first, it->second.buffer);
                 
-                std::cout << "Received from client: " << it->second.buffer << std::endl;
+                // std::cout << it->second.getsednBuffer() << "bytes received : "<< bytes_received<<std::endl;
             }
         }
     }
@@ -123,6 +127,7 @@ void Server::SendResponse()
 {
     for(std::map<int,Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)
     {
+        // std::cout << it->second.getsednBuffer() <<std::endl;
         if(it->second.getsendReady() == true)
         {
             ssize_t bytes_sent = send(it->first, it->second.getsednBuffer().c_str(), strlen(it->second.getsednBuffer().c_str()), 0);

@@ -35,7 +35,7 @@ void privmsg(Server *server, int const client_fd, cmd_struct cmd_info) {
 
     //parse msg
     size_t pos = cmd_info.msg.rfind(":");
-    if (pos = std::string::npos) {
+    if (pos == std::string::npos) {
         addToClientBuffer(server, client_fd, ERR_NOTEXTTOSEND(it->second.getNickName()));
         return;
     }

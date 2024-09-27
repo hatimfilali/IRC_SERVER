@@ -67,20 +67,23 @@ void Channel::removeClient(std::string &clientName) {
 void Channel::addToKicked(std::string &clientName) {
     std::vector<std::string>::iterator it;
     for (it = kickedUsers.begin(); it != kickedUsers.end(); it++) {
-        if (*it == clientName)
+        if (*it == clientName) {
             std::cout << clientName << " has already been kicked from channel " << getName() << std::endl;
             return;
+        }
     }
     kickedUsers.push_back(clientName);
     std::cout << clientName << "is now kicked from channel " << getName() << std::endl;
+    return;
 }
 
 void Channel::addToBanned(std::string &clientName) {
     std::vector<std::string>::iterator it;
     for (it = bannedUsers.begin(); it != bannedUsers.end(); it++) {
-        if (*it == clientName)
+        if (*it == clientName){
             std::cout << clientName << " has already been banned from channel " << getName() << std::endl;
             return;
+        }
     }
     bannedUsers.push_back(clientName);
     std::cout << clientName << " is now banned from channel " << getName() << std::endl;

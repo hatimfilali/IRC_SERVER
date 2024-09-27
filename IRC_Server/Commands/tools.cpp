@@ -99,6 +99,7 @@ std::string findNickname(std::string msg) {
 }
 
 bool isAlreadyUsed(Server *server, int client_fd, std::string newNickName) {
+    (void) client_fd;
     std::map<int , Client> clientList = server->getClients();
     std::map<int, Client>::iterator it = clientList.begin();
     while (it != clientList.end()) {
@@ -151,9 +152,9 @@ std::string retrieveKey(std::string msg) {
         msg.erase(0, 1);
     int pos = msg.find(",") == 0 ? msg.find(",") + 1 : 0;
     while(msg[pos] != ',' || msg[pos]) {
-        if (msg[pos] == '-' || msg[pos] == '_' || isalpha(msg[pos]) || isdigit(msg[pos]))
+        if (msg[pos] == '-' || msg[pos] == '_' || isalpha(msg[pos]) || isdigit(msg[pos])) 
             key += msg[pos];
-            pos++;
+        pos++;
     }
     return key;
 }
@@ -217,7 +218,7 @@ static void splitMsg(std::vector<std::string> &cmds, std::string cmd_line) {
 void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) {
     cmd_struct cmd_info;
     Client client = retrieveClient(server, client_fd);
-    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK", "BOT"};
+    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK"};
 
     if (parse_cmd(rcvBuffer, cmd_info) == FAILURE) 
         return;
@@ -241,11 +242,9 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
         break;
     case 4:
         privmsg(server, client_fd, cmd_info);
+        break;
     case 5:
         kick(server, client_fd, cmd_info);
-        break;
-    case 6:
-        bot(server, client_fd, cmd_info.msg);
         break;
     default:
         addToClientBuffer(server, client_fd, ERR_UNKNONKCOMMAND(client.getNickName(), cmd_info.name));
@@ -255,7 +254,7 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
 
 void getCommandLine(Server *server, int const client_fd, std::string cmd_line) {
     std::vector<std::string> cmds;
-    std::map<int, Client>::iterator it = server->getClients().find(client_fd);
+    // std::map<int, Client>::iterator it = server->getClients().find(client_fd);
 
     splitMsg(cmds, cmd_line);
     
