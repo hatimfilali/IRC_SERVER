@@ -97,6 +97,26 @@ void Server::CheckForIncomingConnection()
     }
 }
 
+void Server::GetMsgFromClients()
+{
+    for(std::map<int, Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)
+    {
+        if (FD_ISSET(it->first, &read_fds))
+        {
+            ssize_t bytes_received = recv(it->first, it->second.buffer, sizeof(it->first, it->second.buffer), 0);
+            if(bytes_received < 0)
+                std::cout << "Got error while receiving data from client"<<std::endl;
+            else if(bytes_received == 0)
+                std::cout << "Client disconnected" << std::endl;
+            else
+            {
+                //hna radi dir l code nta3ek
+                std::cout << "Received from client: " << it->second.buffer << std::endl;
+            }
+        }
+    }
+}
+
 void Server::CloseSocket()
 {
     for(std::map<int, Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)

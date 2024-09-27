@@ -2,7 +2,7 @@
 
 
 Client::Client(){}
-Client::Client(const std::string nickname, const std::string username, int fdclient):_NickName(nickname) , _UserName(username), fd(fdclient){}
+Client::Client(const std::string nickname, const std::string username, int fdclient):_NickName(nickname) , _UserName(username), fd(fdclient), sendReady(false){}
 Client::Client(const Client &other)
 {
         *this = other;

@@ -19,6 +19,7 @@ class Client
         std::string _UserName;
         std::string sednBuffer;
         int fd;
+        bool sendReady;
     public:
         char buffer[1024];
         Client();

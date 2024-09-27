@@ -30,6 +30,7 @@ class Server
         void Listening();
         void AddTo_FD_Set();
         void CheckForIncomingConnection();
+        void GetMsgFromClients();
         void CloseSocket();
 };
 
