@@ -12,6 +12,8 @@ struct cmd_struct {
 };
 
 //PARSING FUNCTIONS
+void getCommandLine(Server *server, int const client_fd, std::string cmd_line);
+void executeCommand(Server *server, int const client_fd, std::string rcvBuffer);
 
 int parse_cmd(std::string cmd_line, cmd_struct &cmd_info);
 void addToClientBuffer(Server *server, int const client_fd, std::string reply);

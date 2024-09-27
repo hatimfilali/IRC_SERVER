@@ -111,6 +111,8 @@ void Server::GetMsgFromClients()
             else
             {
                 //hna radi dir l code nta3ek
+                getCommandLine(this, it->first, it->second.buffer);
+                
                 std::cout << "Received from client: " << it->second.buffer << std::endl;
             }
         }

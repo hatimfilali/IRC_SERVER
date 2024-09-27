@@ -201,3 +201,64 @@ std::string getReason(std::string msg) {
         reason.append(msg, msg.find(":" + 1, std::string::npos));
     return reason;
 }
+
+static void splitMsg(std::vector<std::string> &cmds, std::string cmd_line) {
+    int pos = 0;
+    std::string del = "\n";
+    std::string substr;
+
+    while ((pos = cmd_line.find(del)) != static_cast<int>(std::string::npos)) {
+        substr = cmd_line.substr(0, pos);
+        cmds.push_back(substr);
+        cmd_line.erase(0, pos + 1);
+    }
+}
+
+void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) {
+    cmd_struct cmd_info;
+    Client client = retrieveClient(server, client_fd);
+    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK"};
+
+    if (parse_cmd(rcvBuffer, cmd_info) == FAILURE) 
+        return;
+        
+    size_t i = 0;
+    while(i < VALID_LENGTH) {
+        if (validCommands[i] == cmd_info.name)
+            break;
+        i++;
+    }
+    switch (i + 1)
+    {
+    case 1:
+        invite(server,client_fd, cmd_info);
+        break;
+    case 2:
+        join(server, client_fd, cmd_info);
+        break;
+    case 3:
+        //topic command
+        break;
+    case 4:
+        privmsg(server, client_fd, cmd_info);
+    case 5:
+        kick(server, client_fd, cmd_info);
+        break;
+    default:
+        addToClientBuffer(server, client_fd, ERR_UNKNONKCOMMAND(client.getNickName(), cmd_info.name));
+        break;
+    }
+}
+
+void getCommandLine(Server *server, int const client_fd, std::string cmd_line) {
+    std::vector<std::string> cmds;
+    std::map<int, Client>::iterator it = server->getClients().find(client_fd);
+
+    splitMsg(cmds, cmd_line);
+    
+    for (size_t i = 0; i < cmds.size(); i++)
+    {
+        executeCommand(server, client_fd, cmds[i]);
+    }
+    
+}

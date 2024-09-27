@@ -5,9 +5,12 @@
 #define FAILURE -1
 #define BREAK 2
 #define CONTINUE 3
+#define VALID_LENGTH 5
 
 #define user_id(nickname, username) (":" + nickname + "!" + username + "@localhost")
 
+//PARSING
+#define ERR_UNKNONKCOMMAND(client, command) (":localhost 421 " + client + " #" + command + " :Unknown command\r\n")
 
 //INVITE
 #define ERR_NEEDMOREPARAMS(client, command) (":localhost 461 " + client + " " + command + " :Not enough patameters.\r\n")
