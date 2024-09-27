@@ -217,7 +217,7 @@ static void splitMsg(std::vector<std::string> &cmds, std::string cmd_line) {
 void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) {
     cmd_struct cmd_info;
     Client client = retrieveClient(server, client_fd);
-    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK"};
+    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK", "BOT"};
 
     if (parse_cmd(rcvBuffer, cmd_info) == FAILURE) 
         return;
@@ -243,6 +243,9 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
         privmsg(server, client_fd, cmd_info);
     case 5:
         kick(server, client_fd, cmd_info);
+        break;
+    case 6:
+        bot(server, client_fd, cmd_info.msg);
         break;
     default:
         addToClientBuffer(server, client_fd, ERR_UNKNONKCOMMAND(client.getNickName(), cmd_info.name));
