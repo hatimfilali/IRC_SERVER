@@ -1,8 +1,15 @@
 #include "Client.hpp"
 
 
-Client::Client(){}
-Client::Client(const std::string nickname, const std::string username, int fdclient):_NickName(nickname) , _UserName(username), fd(fdclient), sendReady(false){}
+Client::Client()
+{
+    sednBuffer.clear();
+    fd = -1;
+}
+Client::Client(const std::string nickname, const std::string username, int fdclient):_NickName(nickname) , _UserName(username), fd(fdclient), sendReady(false)
+{
+    sednBuffer.clear();
+}
 Client::Client(const Client &other)
 {
         *this = other;
@@ -14,6 +21,8 @@ Client& Client::operator=(const Client &other)
     {
         _NickName = other._NickName;
         _UserName = other._UserName;
+        fd = other.fd;
+        sendReady = other.sendReady;
     }
     return *this;
 }
@@ -55,7 +64,7 @@ void Client::setFD(int fdcleint)
 }
 void Client::setsendReady(bool _sendReady)
 {
-    sendReady = _sendReady;
+    this->sendReady = _sendReady;
 }
 
 std::string Client::SearchNext(std::string searched)
@@ -80,7 +89,7 @@ std::string Client::SearchNext(std::string searched)
 }
 
 void Client::setSendBuffer(std::string const &buff) {
-    sednBuffer += buff;
+    sednBuffer = buff;
 }
 
 

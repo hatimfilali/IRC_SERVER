@@ -22,6 +22,8 @@ class Channel {
         Channel(std::string const &name);
         ~Channel();
 
+        void printClient();
+
         //Getters and Setters
         std::string                        &getName();
         std::string                     &getTopic();
@@ -56,6 +58,11 @@ class Channel {
         void                        addMode(std::string const mode);
         void                        removeMode(std::string const mode);
         void                        removeChannelPassword();
+
+
+
+
+        
 
 };
 

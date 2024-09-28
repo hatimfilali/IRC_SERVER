@@ -4,6 +4,7 @@ Channel::Channel(std::string const &name) : ChannelName(name), capacity(-1) {
     users.clear();
     bannedUsers.clear();
     topic.clear();
+    kickedUsers.clear();
 }
 
 Channel::~Channel () {}
@@ -102,10 +103,10 @@ void Channel::removeFromBanned(std::string &clientName) {
 }
 
 bool Channel::isBanned(std::string &clientName) {
-    std::vector<std::string>::iterator it;
     if(bannedUsers.empty() == true)
         return false;
-    for(it = bannedUsers.begin(); it != bannedUsers.end(); it++) {
+    std::cout << "bannedlist is not empty";
+    for(std::vector<std::string>::iterator it = bannedUsers.begin(); it != bannedUsers.end(); it++) {
         if(*it == clientName)
             return true;
     }
@@ -126,16 +127,18 @@ bool Channel::isOperator(std::string operatorName) {
 }
 
 void Channel::addOperator(std::string operatorName) {
-    if(operators.empty())
+    if(operators.empty()) {
         operators.push_back(operatorName);
+        return;
+    }
     std::vector<std::string>::iterator it;
     for(it == operators.begin(); it != operators.end(); it++) {
         if(*it == operatorName) {
             std::cout << operatorName << " is already an operator in channel " << getName() << std::endl;
             return;
         }
-        operators.push_back(operatorName);
     }
+    operators.push_back(operatorName);
 }
 
 void Channel::removeOperator(std::string operatorName) {
@@ -162,4 +165,14 @@ void Channel::removeMode(std::string const mode) {
 
 void Channel::removeChannelPassword() {
     password.clear();
+}
+
+void Channel::printClient()
+{
+
+
+    for(std::map<std::string, Client>::iterator it = users.begin(); it !=users.end(); ++it)
+    {
+        std::cout << "nickname is :" << it->first << " fd is : " << it->second.getFD() << std::endl;
+    }
 }

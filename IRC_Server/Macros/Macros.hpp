@@ -21,7 +21,7 @@
 #define RPL_INVITE(user_id, invited, channel) (user_id + " INVITE " + invited + " #" + channel + "\\r\n")
 
 //JOIN
-#define RPL_JOIN(user_id, channel) (user_id + " JOOIN :#" +channel + "\r\n")
+#define RPL_JOIN(user_id, channel) (user_id + " JOIN :#" +channel + "\r\n")
 #define ERR_BANNEDFROMCHANNEL(client, channel) ("474 " + client + " #" + channel + " :Cannot join chaannel (+b)\r\n")
 #define ERR_BADCHAANNELKEY(client, channel) ("475 " + client + " #" + channel + " :Cannot join channel (+k)\r\n")
 #define ERR_CHANNELISFULL(client, channel) ("471 " + client + " #" + channel + " :Cannot joinn channel (+l)\r\n")
@@ -35,7 +35,7 @@
 #define ERR_NORECIPIENT(client) ("411 " + client + " :No recipieent given PRIVMSG")
 #define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
 #define ERR_NOSUCHNICK(client, target) ("401 " + client + " " + target + " :No such nick/channel\r\n")
-#define RPL_PRIVMSG(nick, username, target, message) (":" + nick + "!" + username + "@localhost PRIVMSG " + target + message + "\r\n")
+#define RPL_PRIVMSG(nick, username, target, message) (":" + nick + "!" + username + " PRIVMSG " + target + " :" + message + "\r\n")
 
 
 //KICK

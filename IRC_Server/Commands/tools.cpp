@@ -43,12 +43,19 @@ int parse_cmd(std::string cmd_line, cmd_struct &cmd_info) {
 void addToClientBuffer(Server *server, int const client_fd, std::string reply) {
     Client &client = retrieveClient(server, client_fd);
     client.setSendBuffer(reply);
+    client.setsendReady(true);
 }
 
 Client &retrieveClient(Server *server, int const client_fd) {
     std::map<int, Client> & clientList = server->getClients();
     std::map<int, Client>::iterator it = clientList.find(client_fd);
+    // std::cout << "fd : "<< it->first << std::endl << "nickname is :" << it->second.getNickName() << std::endl;
+    // if(it == clientList.end())
+    // {
 
+    //     std::cout << "client not in the client list\n";
+    // }
+    // std::cout << "client retireved succefully :"<< it->second.getNickName() << "  \n";
     Client &client = it->second;
     return client;
 }
@@ -112,8 +119,9 @@ bool isAlreadyUsed(Server *server, int client_fd, std::string newNickName) {
 
 std::string findChannel(std::string msg) { // msg example : INVITE timu #channelName
     std::string ChannelName;
-    if (msg.empty() || msg.find("#") == msg.npos)
+    if (msg.empty() || msg.find("#") == msg.npos) {
         ChannelName.clear();
+        }
     else
         ChannelName.append(msg, msg.find("#") + 1, msg.npos);
     return ChannelName;
@@ -133,7 +141,7 @@ bool ContainAtLeastOneAlphaChar(std::string msg) {
 }
 
 void addChannel(Server *server, std::string channelName) {
-    std::map<std::string, Channel> channelList = server->getChannels();
+    std::map<std::string, Channel> &channelList = server->getChannels();
     std::map<std::string, Channel>::iterator it = channelList.find(channelName);
     if(it != channelList.end()) {
         std::cout << "Channel name already exists, Please enter another name";
@@ -141,6 +149,7 @@ void addChannel(Server *server, std::string channelName) {
     }
     Channel channel(channelName);
     server->getChannels().insert(std::pair<std::string, Channel>(channelName, channel));
+    // std::cout <<"channel added: "<< server->getChannels().find(channelName)->second.getName() << "\n";
 }
 
 std::string retrieveKey(std::string msg) {
@@ -159,29 +168,56 @@ std::string retrieveKey(std::string msg) {
     return key;
 }
 
-void addClientToChannel(Server *server, std::string &channelName, Client &client) {
+bool addClientToChannel(Server *server, std::string &channelName, Client &client) {
     std::string clientName = client.getNickName();
     std::map<std::string, Channel>::iterator it = server->getChannels().find(channelName);
     if (it->second.isChannelClient(clientName) == false) {
         it->second.addClient(client);
+        // std::cout << "client added to channel: "<< it->second.getUsers().find(clientName)->second.getFD()<<" | "<< clientName << " #" << channelName << "\n";
+        // it->second.printClient();
+        return true;
     }
-    else 
-        std::cout << "Client already exist\n";
+    std::cout << "Client already exist\n";
+    return false;
 }
 
 void sendChannelInfo(Server *server, Channel &channel, std::string channelName, Client &client) {
+
     std::string clientNickName = client.getNickName();
     std::string clientUserName = client.getUserName();
-    std::map<std::string, Client>::iterator member = channel.getUsers().begin();
+
+    // std::cout<< "size users in chanel " <<channel.getUsers().size()<<std::endl;
+    // std::cout << "clientNickName : "<< clientNickName << std::endl;
+    // std::cout << "clientUserName : "<< clientUserName << std::endl;
+
+    
+
+    std::map<std::string, Client>::iterator member =channel.getUsers().begin();
+    // std::map<std::string, Client> &test= channel.getUsers();
+    // std::cout << "client fd is :" << member->second.getFD()<< std::endl;
+    // if(test.empty()){
+    //     std::cout << "i m out"<<std::endl;
+    //     return ;
+    // }
+    // std::cout << "----------------------------------------------"<<std::endl;
+    // std::cout << "nick : "<< member->first << std::endl;
+    // std::cout << "++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
+    // (void)server;
+    // (void) channelName;
+    // (void)member;
 
     while(member != channel.getUsers().end()) {
+    // //      std::cout << "1111111111111 :::: : " << std::endl;
         addToClientBuffer(server, member->second.getFD(), RPL_JOIN(user_id(clientNickName, clientUserName), channelName));
-        if(channel.getTopic().empty() == true)
-            addToClientBuffer(server, member->second.getFD(), RPL_TOPIC(clientNickName, channelName, channel.getTopic()));
-        std::string listOfMembers = getListOfmembers(clientNickName, channel);
-        addToClientBuffer(server, client.getFD(), RPL_NAMEREPLY(clientNickName, channelName, listOfMembers));
-        addToClientBuffer(server, client.getFD(), RPL_ENDOFNAMES(clientNickName, channelName));
-        member++;
+    //  if(channel.getTopic().empty() != true)
+        //  addToClientBuffer(server, member->second.getFD(), RPL_TOPIC(clientNickName, channelName, channel.getTopic()));
+    if(member->second.getFD() == client.getFD()) {
+            // std::string listOfMembers = getListOfmembers(clientNickName, channel);
+            // std::cout  << listOfMembers << std::endl;
+            // addToClientBuffer(server, client.getFD(), RPL_NAMEREPLY(clientNickName, channelName, listOfMembers));
+            // addToClientBuffer(server, client.getFD(), RPL_ENDOFNAMES(clientNickName, channelName));
+        }
+    member++;
     }
 }
 
@@ -219,10 +255,10 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
     cmd_struct cmd_info;
     Client client = retrieveClient(server, client_fd);
     std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK"};
-
+    // std::cout << "recieved : " << rcvBuffer << " from: " << client_fd << std::endl;
     if (parse_cmd(rcvBuffer, cmd_info) == FAILURE) 
         return;
-        
+    // std::cout << "recieved from client > " << cmd_info.prefix << " " << cmd_info.name << " " << cmd_info.msg << std::endl;
     size_t i = 0;
     while(i < VALID_LENGTH) {
         if (validCommands[i] == cmd_info.name)

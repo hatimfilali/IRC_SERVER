@@ -26,7 +26,7 @@ std::string findChannel(std::string msg);
 bool ContainAtLeastOneAlphaChar(std::string msg);
 void addChannel(Server *server, std::string channelName);
 std::string retrieveKey(std::string msg);
-void addClientToChannel(Server *server, std::string &channelName, Client &client);
+bool addClientToChannel(Server *server, std::string &channelName, Client &client);
 void sendChannelInfo(Server *server, Channel &channel, std::string channelName, Client &client);
 std::string getKickedName (std::string msg);
 std::string getReason(std::string msg);

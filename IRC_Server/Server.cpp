@@ -87,7 +87,8 @@ void Server::CheckForIncomingConnection()
                     client.setUserName(client.SearchNext("USER"));
                     client.setFD(new_socket);
                     _Clients[new_socket] = client;
-                    std::cout << "New connection on socket " << _Clients[new_socket].getNickName() << std::endl;    
+                    // _Clients[new_socket].setFD(new_socket);
+                    std::cout << "New connection on socket " << _Clients[new_socket].getNickName() << " with fd client  : " << client.getFD() <<" fd client map is : "<<_Clients[new_socket].getFD()<< " and new socket :"<< new_socket<< std::endl;    
                 }
             }
         }
@@ -111,13 +112,16 @@ void Server::GetMsgFromClients()
             if(bytes_received < 0)
                 std::cout << "Got error while receiving data from client"<<std::endl;
             else if(bytes_received == 0)
+            {
+
                 std::cout << "Client disconnected" << std::endl;
+            }
             else
             {
                 //hna radi dir l code nta3ek
                 getCommandLine(this, it->first, it->second.buffer);
                 
-                // std::cout << it->second.getsednBuffer() << "bytes received : "<< bytes_received<<std::endl;
+                std::cout << it->second.getsednBuffer() <<std::endl;
             }
         }
     }
