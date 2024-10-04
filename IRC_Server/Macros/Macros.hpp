@@ -43,6 +43,11 @@
 #define ERR_NOTCHANNELOP(client, channel) (":localhost 482 " + client + " #" + channel + " :You are not the channel operator\r\n")
 #define RPL_KICK(user_id, channel, kicked, reason) (user_id + " KICK #" + channel + " " + kicked + " " + reason + "\r\n")
 
+//NICK
+#define ERR_NONICKNAMEGIVEN(client) (":localhost 431 " + client + " :There is no nickname.\r\n")
+#define ERR_ERRONEUSNICKNAME(client, nickname) (":localhost 432 " + client + " " + nickname + " :Erroneus nickname\r\n")
+#define ERR_NICKNAMEINUSE( nickname) (":localhost 433 " + nickname + " :Nickname is already in use.\r\n")
+
 
 
 #endif

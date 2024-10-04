@@ -10,6 +10,7 @@
 #include <cstring>
 #include <map>
 #include <cstdlib>
+#include <csignal>
 
 
 class Client
@@ -18,8 +19,10 @@ class Client
         std::string _NickName;
         std::string _UserName;
         std::string sednBuffer;
+        std::string readBuffer;
         int fd;
         bool sendReady;
+        bool readReady;
     public:
         char buffer[1024];
         Client();
@@ -31,15 +34,20 @@ class Client
         std::string getNickName();
         std::string getUserName();
         std::string getsednBuffer();
+        std::string getReadBuffer();
         bool getsendReady();
+        bool getReadReady();
         int getFD();
 
         void setNickName(const std::string nickname);
         void setUserName(const std::string username);
         void setFD(int fdclient);
         void setsendReady(bool _sendReady);
+        void setReadReady(bool ready);
         void setSendBuffer(std::string const &buff);
+        void setReadBuffer(const char buffer[1024]);
         std::string SearchNext(std::string searched);
+        bool isReady(const char buffer[1024]);
 };
 
 

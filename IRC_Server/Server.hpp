@@ -25,12 +25,15 @@ class Server
         Server();
         Server(std::string Password, int Port);
         ~Server();
+        void setPassword(std::string Password);
+        void setPort(int Port);
         std::map<std::string, Channel> &getChannels();
         std::map<int, Client> &getClients();
         void BindingAdress();
         void Listening();
         void AddTo_FD_Set();
         void CheckForIncomingConnection();
+        bool CheckUserExist(std::string Nickname);
         void GetMsgFromClients();
         void SendResponse();
         void CloseSocket();

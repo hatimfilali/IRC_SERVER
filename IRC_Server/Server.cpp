@@ -20,6 +20,11 @@ std::map<int, Client> &Server::getClients() {
 
 void Server::BindingAdress()
 {
+    int opt = 1;
+    if (setsockopt(_ServerSocket, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+        throw std::runtime_error("Failed to set SO_REUSEPORT option");
+        close(_ServerSocket);
+    }
     std::memset(&server_address, 0, sizeof(server_address));
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = INADDR_ANY;
@@ -55,7 +60,7 @@ void Server::AddTo_FD_Set()
 void Server::CheckForIncomingConnection()
 {
     Client client;
-    timeout.tv_sec = 5;
+    timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
     int activity = select(max_fd + 1, &read_fds, NULL, NULL, &timeout);
@@ -72,22 +77,30 @@ void Server::CheckForIncomingConnection()
             else if (bytes_received == 0)
             {
                 close(new_socket);
-                _Clients.erase(new_socket);
+                // _Clients.erase(new_socket);
                 std::cout << "Client disconnected" << std::endl;
             }else
             {
                 if(_Password != client.SearchNext("PASS"))
                 {
                     close(new_socket);
-                    std::cout << "Invalid Password : {" <<client.SearchNext("PASS")<< "}" <<std::endl;
-                    // std::cout << "valid Password : {" <<_Password<<"}" <<std::endl;
+                    std::cout << "Invalid Password" <<std::endl;
+                }
+                else if(CheckUserExist(client.SearchNext("NICK")) == true)
+                {
+                    std::string errormsg = ERR_NICKNAMEINUSE(client.SearchNext("NICK"));
+                    ssize_t bytes_sent = send(new_socket, errormsg.c_str(), strlen(errormsg.c_str()), 0);
+                    if (bytes_sent < 0) {
+                        std::cout << "Got error while sending data to client"<<std::endl;
+                    }
+                    close(new_socket);
+                    // std::cout << "Invalid Password : {" <<errormsg<< "}" <<std::endl;
                 }else
                 {
                     client.setNickName(client.SearchNext("NICK"));
                     client.setUserName(client.SearchNext("USER"));
                     client.setFD(new_socket);
                     _Clients[new_socket] = client;
-                    // _Clients[new_socket].setFD(new_socket);
                     std::cout << "New connection on socket " << _Clients[new_socket].getNickName() << " with fd client  : " << client.getFD() <<" fd client map is : "<<_Clients[new_socket].getFD()<< " and new socket :"<< new_socket<< std::endl;    
                 }
             }
@@ -98,9 +111,18 @@ void Server::CheckForIncomingConnection()
     }
 }
 
+bool Server::CheckUserExist(std::string Nickname)
+{
+    for(std::map<int, Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)
+    {
+        if(it->second.getNickName() == Nickname)
+            return true;
+    }
+    return false;
+}
+
 void Server::GetMsgFromClients()
 {
-    // std::cout << "hnaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << std::endl;
     for(std::map<int, Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)
     {
         if (FD_ISSET(it->first, &read_fds))
@@ -113,14 +135,16 @@ void Server::GetMsgFromClients()
                 std::cout << "Got error while receiving data from client"<<std::endl;
             else if(bytes_received == 0)
             {
-
+                close(it->first);
+                _Clients.erase(it->first);
                 std::cout << "Client disconnected" << std::endl;
             }
             else
             {
-                //hna radi dir l code nta3ek
-                getCommandLine(this, it->first, it->second.buffer);
-                
+                it->second.setReadBuffer(it->second.buffer);
+                it->second.setReadReady(it->second.isReady(it->second.buffer));
+                if(it->second.getReadReady() == true)
+                    getCommandLine(this, it->first, it->second.getReadBuffer());
                 std::cout << it->second.getsednBuffer() <<std::endl;
             }
         }
@@ -131,14 +155,16 @@ void Server::SendResponse()
 {
     for(std::map<int,Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)
     {
-        // std::cout << it->second.getsednBuffer() <<std::endl;
         if(it->second.getsendReady() == true)
         {
-            ssize_t bytes_sent = send(it->first, it->second.getsednBuffer().c_str(), strlen(it->second.getsednBuffer().c_str()), 0);
+
+            ssize_t bytes_sent = send(it->first, it->second.getsednBuffer().c_str(), 1024, 0);
             if (bytes_sent < 0) {
                 std::cout << "Got error while sending data to client"<<std::endl;
             }
-            it->second.setsendReady(false);
+            it->second.setSendBuffer(it->second.getsednBuffer().erase(0, 1024));
+            if(it->second.getsednBuffer().empty())
+                it->second.setsendReady(false);
         }
     }
 }
@@ -148,8 +174,27 @@ void Server::CloseSocket()
     for(std::map<int, Client>::iterator it = _Clients.begin(); it != _Clients.end(); ++it)
         close(it->first);
     close(_ServerSocket);
+    std::cout << "i have been called to close Sockets" << std::endl;
 }
 Server::~Server()
 {
     CloseSocket();
+}
+
+
+
+void Server::setPort(int Port)
+{
+    if(Port < 1024 || Port > 49152)
+        throw std::runtime_error("Invalid Port \nChose Port Between 1024 And 49152");
+    _Port = Port;
+    _ServerSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (_ServerSocket == -1)
+        throw std::runtime_error("Failed to create socket");
+}
+
+
+void Server::setPassword(std::string Password)
+{
+    _Password = Password;
 }

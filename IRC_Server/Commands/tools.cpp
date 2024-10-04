@@ -288,7 +288,7 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
     }
 }
 
-void getCommandLine(Server *server, int const client_fd, std::string cmd_line) {
+void getCommandLine(Server *server, int const client_fd, std::string &cmd_line) {
     std::vector<std::string> cmds;
     // std::map<int, Client>::iterator it = server->getClients().find(client_fd);
 
@@ -298,5 +298,7 @@ void getCommandLine(Server *server, int const client_fd, std::string cmd_line) {
     {
         executeCommand(server, client_fd, cmds[i]);
     }
-    
+    Client &client = retrieveClient(server, client_fd);
+    client.setReadReady(false);
+    client.setReadBuffer("");
 }

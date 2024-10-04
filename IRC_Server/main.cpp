@@ -1,6 +1,26 @@
 #include <iostream>
 #include "Server.hpp"
 
+// volatile sig_atomic_t signalReceived = 0;
+// Server server("test", 0);
+
+
+Server *getServer(Server *srver)
+{
+    static Server *s = srver;
+    return s;
+}
+
+void signalHandler(int signal)
+{
+    getServer(NULL)->~Server();
+    exit(signal);
+    // signalReceived = 1;
+    // std::cout << "Signal received: " << signalReceived << std::endl;
+    // server.~Server();
+    // exit(signal);
+}
+
 int main(int ac, char** av)
 {
     if(ac != 3)
@@ -11,12 +31,24 @@ int main(int ac, char** av)
     }
 
     Server server(av[2], std::atoi(av[1]));
+    getServer(&server);
+    // server = new Server(av[2], std::atoi(av[1]));
+
+    // server.setPassword(av[2]);
+    // server.setPort(std::atoi(av[1]));
+    signal(SIGINT,signalHandler);
     try
     {
         server.BindingAdress();
         server.Listening();
         while(true)
         {
+
+            // std::cout  << signalReceived << std::endl;
+            // if(signalReceived)
+            // {
+            //     break;
+            // }
             server.AddTo_FD_Set();
             server.CheckForIncomingConnection();
             server.GetMsgFromClients();
