@@ -4,10 +4,19 @@
 #define ERR_BADMODEPARAM(client, command) (client + " " + command + " :Bad parameters \r\n")
 #define ERR_CLIENTALREDYOP(client, channel, nickname) (client + " #" + channel + " " + nickname + " :Already a channel operator\r\n")
 #define RPL_ADDEDOPERATOR(client, channel, nickname) ( client + " #" + channel + " " + nickname + " :Operator added\r\n")
+#define RPL_REMOVEDOPERATOR(client, channel, nickname) ( client + " #" + channel + " " + nickname + " :Operator removed\r\n")
 
 static std::string getOp(std::string message) {
     std::string op;
     size_t pos = message.find("+o ");
+    op = message.substr(pos + 3, std::string::npos);
+    return op;
+}
+
+static std::string getROp(std::string message) {
+    std::string removed;
+    size_t pos = message.find("-o ");
+    pos = message.find("-o ")
     op = message.substr(pos + 3, std::string::npos);
     return op;
 }
@@ -45,9 +54,33 @@ static bool promoteToOp(Server *server, int const client_fd, std::map<std::strin
 }
 
 static bool downGradeOp(Server *server, const int client_fd, std::map<std::string, Channel>::iterator &channel_it, cmd_struct cmd_info) {
-    //Kept in here
-    //remove the op from the operator vector
-
+    Client &client = retrieveClient(server, client_fd);
+    std::string toBeRemoved = getROp(cmd_info.msg);
+    std::map<std::string, Client>::iterator user = channel_it->second.getUsers().find(client.getNickName());
+    if(user == channel_it->second.getUsers().end()) {
+        addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(client.getNickName(), channel_it->first));
+        return true;
+    }
+    for(std::vector<std::string>::iterator it = channel_it->second.getOperators().begin(); it < channel_it->second.getOperators().end(); it++) {
+        if (*it == client.getNickName()) {
+            addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(client.getNickName(), channel_it->first));
+            return true;
+        }
+    }
+    for(std::vector<std::string>::iterator it = channel_it->second.getUsers().begin(); it < channel_it->second.getUsers().end(); it++) {
+        if (*it == toBeRemoved) {
+            addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(toBeRemoved, channel_it->first));
+            return true;
+        }
+    }
+    user = channel_it->second.getOperators().find(toBeRemoved);
+    if(user == channel_it->second.getOperators().end()){
+        addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(toBeRemoved, channel_it->first));
+        return true;
+    }
+    channel_it->second.removeOperator(toBeRemoved);
+    addToClientBuffer(server, client_fd, RPL_REMOVEDOPERATOR(client.getNickName(), channel_it->first, toBeRemoved));
+    return true;
 }
 
 static std::string getModesToRemove(Server *server, const int client_fd, cmd_struct cmd_info) {
@@ -125,14 +158,6 @@ static void removeModes(Server *server, const int client_fd, std::map<std::strin
         }
         if(remove == true)
             toRemove += removedModes.at(i);
-    }
-    if (toRemove.find("o") != std::string::npos) {
-        if (toRemove == "o") {
-            //dwongrade op to normal user
-        }
-        else {
-            //ERR_cannot combine o mode with other channel modes
-        }
     }
     if(!toRemove.empty())
         channel_it->second.removeMode(toRemove);
