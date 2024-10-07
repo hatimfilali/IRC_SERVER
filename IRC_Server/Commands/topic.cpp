@@ -1,8 +1,5 @@
 #include "Commands.hpp"
 
-//in macros
-#define ERR_NOCHANNELGIVEN(client, command) (client + " " + command + " :No channel given\r\n")
-#define RPL_CHANNELHASNOTOPIC(client, channel) (":localhost 331 " + client + " #" + channel + " :No topic is set.\r\n")
 
 static void showChannelTopic(Server *server, int const client_fd, cmd_struct cmd_info, std::string channelName) {
     std::map<int, Client>::iterator client_it = server->getClients().find(client_fd);

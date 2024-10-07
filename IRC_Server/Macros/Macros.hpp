@@ -5,7 +5,7 @@
 #define FAILURE -1
 #define BREAK 2
 #define CONTINUE 3
-#define VALID_LENGTH 5
+#define VALID_LENGTH 6
 
 #define user_id(nickname, username) (":" + nickname + "!" + username + "@localhost")
 
@@ -30,6 +30,9 @@
 
 //TOPIC
 #define RPL_TOPIC(client, channel, topic) (":localhost 332 " + client + " #" + channel + " " + topic + "\r\n")
+#define ERR_NOCHANNELGIVEN(client, command) (client + " " + command + " :No channel given\r\n")
+#define RPL_CHANNELHASNOTOPIC(client, channel) (":localhost 331 " + client + " #" + channel + " :No topic is set.\r\n")
+
 
 //PRIVMSG
 #define ERR_NORECIPIENT(client) ("411 " + client + " :No recipieent given PRIVMSG")
@@ -50,6 +53,12 @@
 
 
 #define CHECK_STRING_SIZE(str) ((strlen(str) > 1024) ? 1024 : strlen(str))
+
+#define ERR_BADMODEPARAM(client, command) (client + " " + command + " :Bad parameters \r\n")
+#define ERR_CLIENTALREDYOP(client, channel, nickname) (client + " #" + channel + " " + nickname + " :Already a channel operator\r\n")
+#define RPL_ADDEDOPERATOR(client, channel, nickname) ( client + " #" + channel + " " + nickname + " :Operator added\r\n")
+#define RPL_REMOVEDOPERATOR(client, channel, nickname) ( client + " #" + channel + " " + nickname + " :Operator removed\r\n")
+
 
 
 

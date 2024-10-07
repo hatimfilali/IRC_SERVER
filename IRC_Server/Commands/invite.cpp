@@ -27,19 +27,16 @@ void invite(Server *server, int const client_fd, cmd_struct cmd_info) {
         addToClientBuffer(server, client_fd, ERR_USERONCHANNEL(clientNickName, invitedClient, channelName));
         return;
     }
-    //check if channel is invite only 
-    //...
-
-
     addToClientBuffer(server, client_fd, RPL_INVITING(user_id(clientNickName, client.getUserName()), clientNickName, invitedClient, channelName));
     std::map<int, Client> &clients = server->getClients();
     std::map<int, Client>::iterator iter = clients.begin();
     while (iter != clients.end()) {
         if (iter->second.getNickName() == invitedClient) {
             addToClientBuffer(server, iter->second.getFD(), RPL_INVITE(user_id(clientNickName, client.getUserName()), invitedClient, channelName));
-            std::cout << "sisi" << std::endl;
             break;
         }   
     }
-    addClientToChannel(server, channelName, iter->second);
+    if (addClientToChannel(server, channelName, iter->second) == true)
+        sendChannelInfo(server, it->second, channelName, iter->second);
+    
 }

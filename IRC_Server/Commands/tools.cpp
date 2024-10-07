@@ -184,41 +184,12 @@ bool addClientToChannel(Server *server, std::string &channelName, Client &client
 }
 
 void sendChannelInfo(Server *server, Channel &channel, std::string channelName, Client &client) {
-
     std::string clientNickName = client.getNickName();
     std::string clientUserName = client.getUserName();
 
-    // std::cout<< "size users in chanel " <<channel.getUsers().size()<<std::endl;
-    // std::cout << "clientNickName : "<< clientNickName << std::endl;
-    // std::cout << "clientUserName : "<< clientUserName << std::endl;
-
-    
-
     std::map<std::string, Client>::iterator member =channel.getUsers().begin();
-    // std::map<std::string, Client> &test= channel.getUsers();
-    // std::cout << "client fd is :" << member->second.getFD()<< std::endl;
-    // if(test.empty()){
-    //     std::cout << "i m out"<<std::endl;
-    //     return ;
-    // }
-    // std::cout << "----------------------------------------------"<<std::endl;
-    // std::cout << "nick : "<< member->first << std::endl;
-    // std::cout << "++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
-    // (void)server;
-    // (void) channelName;
-    // (void)member;
-
     while(member != channel.getUsers().end()) {
-    // //      std::cout << "1111111111111 :::: : " << std::endl;
         addToClientBuffer(server, member->second.getFD(), RPL_JOIN(user_id(clientNickName, clientUserName), channelName));
-    //  if(channel.getTopic().empty() != true)
-        //  addToClientBuffer(server, member->second.getFD(), RPL_TOPIC(clientNickName, channelName, channel.getTopic()));
-    // if(member->second.getFD() == client.getFD()) {
-    //         std::string listOfMembers = getListOfmembers(clientNickName, channel);
-    //         std::cout  << listOfMembers << std::endl;
-    //         addToClientBuffer(server, client.getFD(), RPL_NAMEREPLY(clientNickName, channelName, listOfMembers));
-    //         addToClientBuffer(server, client.getFD(), RPL_ENDOFNAMES(clientNickName, channelName));
-    //     }
     member++;
     }
 }
@@ -266,7 +237,7 @@ static void splitMsg(std::vector<std::string> &cmds, std::string cmd_line) {
 void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) {
     cmd_struct cmd_info;
     Client client = retrieveClient(server, client_fd);
-    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK"};
+    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK", "MODE"};
     // std::cout << "recieved : " << rcvBuffer << " from: " << client_fd << std::endl;
     if (parse_cmd(rcvBuffer, cmd_info) == FAILURE) 
         return;
@@ -286,7 +257,7 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
         join(server, client_fd, cmd_info);
         break;
     case 3:
-        //topic command
+        topic(server, client_fd, cmd_info);
         break;
     case 4:
         privmsg(server, client_fd, cmd_info);
@@ -294,6 +265,8 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
     case 5:
         kick(server, client_fd, cmd_info);
         break;
+    case 6:
+        mode(server, client_fd, cmd_info);
     default:
         addToClientBuffer(server, client_fd, ERR_UNKNONKCOMMAND(client.getNickName(), cmd_info.name));
         break;

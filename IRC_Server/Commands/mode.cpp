@@ -1,11 +1,5 @@
 #include "Commands.hpp"
 
-#define ERR_NOCHANNELGIVEN(client, command) (client + " " + command + " :No channel given\r\n")
-#define ERR_BADMODEPARAM(client, command) (client + " " + command + " :Bad parameters \r\n")
-#define ERR_CLIENTALREDYOP(client, channel, nickname) (client + " #" + channel + " " + nickname + " :Already a channel operator\r\n")
-#define RPL_ADDEDOPERATOR(client, channel, nickname) ( client + " #" + channel + " " + nickname + " :Operator added\r\n")
-#define RPL_REMOVEDOPERATOR(client, channel, nickname) ( client + " #" + channel + " " + nickname + " :Operator removed\r\n")
-
 static std::string getOp(std::string message) {
     std::string op;
     size_t pos = message.find("+o ");
@@ -96,9 +90,15 @@ static std::string getModesToRemove(Server *server, const int client_fd, cmd_str
             }
             else {
                 addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
-                return NULL;
+                modesToremove.clear();
+                return modesToremove;
             }
         }
+    }
+    if (modesToremove.size() != 1){
+        addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
+        modesToremove.clear();
+        return modesToremove;
     }
     return (modesToremove);
 }
@@ -118,14 +118,24 @@ static std::string getModesToAdd(Server *server, const int client_fd, cmd_struct
             }
             else {
                 addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
-                return NULL;
+                modesToAdd.clear();
+                return modesToAdd;
             }
         }
+    }
+    if (modesToAdd.size() != 1){
+        addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
+        modesToAdd.clear();
+        return modesToAdd;
     }
     return (modesToAdd);
 }
 
-static void addModes(Server *server, const int client_fd, std::map<std::string, Channel>::iterator &channel_it, std::string addedModes) {
+static void chanModed(Server *server, const int client_fd, Channel &channel, std::string mode, std::string modeMsg) {
+    //to change the channel mode if added to the channel and remove it if removed
+}
+
+static void addModes(Server *server, const int client_fd, std::map<std::string, Channel>::iterator &channel_it, std::string addedModes, std::string modeMsg) {
     bool add;
     std::string toAdd;
     toAdd.clear();
@@ -141,6 +151,7 @@ static void addModes(Server *server, const int client_fd, std::map<std::string, 
     }
     if(!toAdd.empty()) {
         channel_it->second.addMode(toAdd);
+        chanModed(server, client_fd, channel_it->second, toAdd, modeMsg);
     }
 }
 
@@ -162,12 +173,25 @@ static void removeModes(Server *server, const int client_fd, std::map<std::strin
     
 }
 
+static std::string getMessage(std::string str) {
+    std::string msg;
+    size_t pos = str.rfind("+");
+    size_t mpos = str.rfind("-");
+    if(pos != std::string::npos || mpos != std::string::npos) {
+        msg = str.substr(str.rfind(" "));
+        return msg;
+    }
+    msg.clear();
+    return msg;
+}
+
 static void changeChannelMode(Server *server, const int client_fd, cmd_struct cmd_info, std::string channelName) {
     std::map<std::string, Channel>::iterator channel_it = server->getChannels().find(channelName);
     std::string addedModes = getModesToAdd(server, client_fd, cmd_info);
     std::string removedModes = getModesToRemove(server, client_fd, cmd_info);
+    std::string modeMsg = getMessage(cmd_info.msg);
     if (!addedModes.empty())
-        addModes(server, client_fd, channel_it, addedModes);
+        addModes(server, client_fd, channel_it, addedModes, modeMsg);
     if (!removedModes.empty())
         removeModes(server, client_fd, channel_it, removedModes);
 
