@@ -32,15 +32,15 @@ std::vector<std::string> &Channel::getKickedUsers() {return kickedUsers;}
 
 std::vector<std::string> &Channel::getOperators() {return operators;}
 
-void Channel::setTopic(std::string &newTopic) {
+void Channel::setTopic(std::string newTopic) {
     topic = newTopic;
 }
 
-void Channel::setPassword(std::string &newPassword) {
+void Channel::setPassword(std::string newPassword) {
     password = newPassword;
 }
 
-void Channel::setCapacity(int &newCapacity) {
+void Channel::setCapacity(int newCapacity) {
     capacity =newCapacity;
 }
 

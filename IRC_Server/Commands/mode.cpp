@@ -132,7 +132,20 @@ static std::string getModesToAdd(Server *server, const int client_fd, cmd_struct
 }
 
 static void chanModed(Server *server, const int client_fd, Channel &channel, std::string mode, std::string modeMsg) {
-    //to change the channel mode if added to the channel and remove it if removed
+    if(mode == "+k") {
+        if (modeMsg.empty())
+            //no password given
+        channel.setPassword(modeMsg);
+    }
+    else if (mode == "-k")
+        channel.setPassword("");
+    if (mode == "+l") {
+        if (modeMsg.empty())
+            //no limit given
+        channel.setCapacity(atoi(modeMsg.c_str()));
+    }
+    else if(mode == "-l" )
+        channel.setCapacity(-1);
 }
 
 static void addModes(Server *server, const int client_fd, std::map<std::string, Channel>::iterator &channel_it, std::string addedModes, std::string modeMsg) {

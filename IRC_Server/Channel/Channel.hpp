@@ -35,9 +35,9 @@ class Channel {
         std::vector<std::string>    &getBannedUsers();
         std::vector<std::string>    &getKickedUsers();
         std::vector<std::string>    &getOperators();
-        void                        setTopic(std::string &newTopic);
-        void                        setPassword(std::string &newTassword);
-        void                        setCapacity(int &newTapacity);
+        void                        setTopic(std::string newTopic);
+        void                        setPassword(std::string newTassword);
+        void                        setCapacity(int newTapacity);
 
         //Clients Management
         bool                        isChannelClient(std::string &clientName);
