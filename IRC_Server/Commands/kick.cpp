@@ -1,13 +1,15 @@
 #include "Commands.hpp"
 
 void kick(Server *server, int const client_fd, cmd_struct cmd_info) {
+    std::cout << "cmd_info.msg: " << cmd_info.msg << std::endl;
     Client& requester = retrieveClient(server, client_fd);
     std::string requesterNickName = requester.getNickName();
     std::string channelName = getChannelName(cmd_info.msg);
     std::string kickedName = getKickedName(cmd_info.msg);
     std::string reason = getReason(cmd_info.msg);
 
-    std::map<std::string, Channel> channels = server->getChannels();
+        std::cout<< "requesterName is in kick: " << requester.getNickName() << std::endl;
+    std::map<std::string, Channel> &channels = server->getChannels();
     std::map<std::string, Channel>::iterator it_chan = channels.find(channelName);
     reason = (reason.empty()) ? ":Has been kickedd by operator." : reason;
 
@@ -27,7 +29,8 @@ void kick(Server *server, int const client_fd, cmd_struct cmd_info) {
         addToClientBuffer(server, client_fd, ERR_USERNOTINCHANNEL(requesterNickName, kickedName, channelName));
         return;
     }
-    else if (it_chan->second.isOperator(requesterNickName)){
+    else if (!it_chan->second.isOperator(requesterNickName)){
+        std::cout << "operator " << requesterNickName << std::endl;
         addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(requesterNickName, channelName));
         return;
     }

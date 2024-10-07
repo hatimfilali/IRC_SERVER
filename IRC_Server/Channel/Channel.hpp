@@ -50,6 +50,7 @@ class Channel {
         bool                        isBanned(std::string &clientName);
 
         //Operators Management
+        void                        addFirstOperator(std::string operatorName);
         bool                        isOperator(std::string operatorName);
         void                        addOperator(std::string operatorName);
         void                        removeOperator(std::string operatorName);

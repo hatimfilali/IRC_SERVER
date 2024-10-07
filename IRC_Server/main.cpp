@@ -37,8 +37,8 @@ int main(int ac, char** av)
     // server.setPassword(av[2]);
     // server.setPort(std::atoi(av[1]));
     signal(SIGINT,signalHandler);
-    try
-    {
+    // try
+    // {
         server.BindingAdress();
         server.Listening();
         while(true)
@@ -57,11 +57,11 @@ int main(int ac, char** av)
             
         }
         server.CloseSocket();
-    }catch( const std::exception& e)
-    {
-        std::cerr << "Exception caught: " << e.what() << std::endl;
-        server.CloseSocket();
-    }
+    // }catch( const std::exception& e)
+    // {
+    //     std::cerr << "Exception caught: " << e.what() << std::endl;
+    //     server.CloseSocket();
+    // }
 
 
 

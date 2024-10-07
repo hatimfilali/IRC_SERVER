@@ -84,12 +84,14 @@ std::string getListOfmembers(std::string client, Channel &channel) {
 
 std::string getChannelName(std::string msg) {
     std::string channelName;
-    size_t i = 0;
-    while (msg[i] &&  !isalpha(msg[i]) && !isdigit(msg[i] && msg[i] != '-' && msg[i] != '_'))
-        i++;
-    while(msg[i] && (isdigit(msg[i]) ||  isdigit(msg[i]) || msg[i] == '-' || msg[i] == '_'))
-        channelName += msg[i];
-
+    channelName.clear();
+    size_t pos = msg.find("#");
+    if (pos == std::string::npos)
+        return channelName;
+    msg.erase(0, pos + 1);
+    pos = msg.find(" ");
+    channelName = msg.substr(0, pos);
+    
     return channelName;
 }
 
@@ -211,31 +213,41 @@ void sendChannelInfo(Server *server, Channel &channel, std::string channelName, 
         addToClientBuffer(server, member->second.getFD(), RPL_JOIN(user_id(clientNickName, clientUserName), channelName));
     //  if(channel.getTopic().empty() != true)
         //  addToClientBuffer(server, member->second.getFD(), RPL_TOPIC(clientNickName, channelName, channel.getTopic()));
-    if(member->second.getFD() == client.getFD()) {
-            // std::string listOfMembers = getListOfmembers(clientNickName, channel);
-            // std::cout  << listOfMembers << std::endl;
-            // addToClientBuffer(server, client.getFD(), RPL_NAMEREPLY(clientNickName, channelName, listOfMembers));
-            // addToClientBuffer(server, client.getFD(), RPL_ENDOFNAMES(clientNickName, channelName));
-        }
+    // if(member->second.getFD() == client.getFD()) {
+    //         std::string listOfMembers = getListOfmembers(clientNickName, channel);
+    //         std::cout  << listOfMembers << std::endl;
+    //         addToClientBuffer(server, client.getFD(), RPL_NAMEREPLY(clientNickName, channelName, listOfMembers));
+    //         addToClientBuffer(server, client.getFD(), RPL_ENDOFNAMES(clientNickName, channelName));
+    //     }
     member++;
     }
 }
 
 std::string getKickedName(std::string msg) {
     std::string kickedName;
+    kickedName.clear();
+    size_t pos = msg.find(":");
+    if(pos==std::string::npos)
+        return kickedName;
+    msg.erase(0, pos+1);
+    pos= msg.find(" ");
+    kickedName = msg.substr(0, pos);
 
-    if(msg[0] == ' ')
-        msg.erase(0, 1);
-    kickedName  = msg.substr(msg.find(' ') + 1, (msg.find(':') - 1 - msg.find(' ') + 1));
     return kickedName;
 }
 
 std::string getReason(std::string msg) {
     std::string reason;
-    
     reason.clear();
-    if (msg.find(":") != std::string::npos)
-        reason.append(msg, msg.find(":" + 1, std::string::npos));
+    size_t pos = msg.find(getKickedName(msg));
+    while(msg.at(pos) != ' ' && pos < msg.length()-1)
+        pos++;
+    if(msg.at(pos) != ' ')
+        return reason;
+    while(msg.at(pos) == ' ' && pos < msg.length()-1)
+        pos++;
+    if (msg.at(pos) != ' ')
+        reason = msg.substr(pos);
     return reason;
 }
 
@@ -288,7 +300,7 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
     }
 }
 
-void getCommandLine(Server *server, int const client_fd, std::string &cmd_line) {
+void getCommandLine(Server *server, int const client_fd, std::string cmd_line){
     std::vector<std::string> cmds;
     // std::map<int, Client>::iterator it = server->getClients().find(client_fd);
 

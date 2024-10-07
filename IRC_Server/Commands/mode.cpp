@@ -16,9 +16,9 @@ static std::string getOp(std::string message) {
 static std::string getROp(std::string message) {
     std::string removed;
     size_t pos = message.find("-o ");
-    pos = message.find("-o ")
-    op = message.substr(pos + 3, std::string::npos);
-    return op;
+    pos = message.find("-o ");
+    removed = message.substr(pos + 3, std::string::npos);
+    return removed;
 }
 
 static bool promoteToOp(Server *server, int const client_fd, std::map<std::string, Channel>::iterator &channel_it, cmd_struct cmd_info) {
@@ -67,19 +67,17 @@ static bool downGradeOp(Server *server, const int client_fd, std::map<std::strin
             return true;
         }
     }
-    for(std::vector<std::string>::iterator it = channel_it->second.getUsers().begin(); it < channel_it->second.getUsers().end(); it++) {
-        if (*it == toBeRemoved) {
-            addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(toBeRemoved, channel_it->first));
+    std::vector<std::string>::iterator it = channel_it->second.getOperators().begin();
+    while (it != channel_it->second.getOperators().end())
+    {
+        if(*it == toBeRemoved){
+            channel_it->second.removeOperator(toBeRemoved);
+            addToClientBuffer(server, client_fd, RPL_REMOVEDOPERATOR(client.getNickName(), channel_it->first, toBeRemoved));
             return true;
         }
+        it++;
     }
-    user = channel_it->second.getOperators().find(toBeRemoved);
-    if(user == channel_it->second.getOperators().end()){
-        addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(toBeRemoved, channel_it->first));
-        return true;
-    }
-    channel_it->second.removeOperator(toBeRemoved);
-    addToClientBuffer(server, client_fd, RPL_REMOVEDOPERATOR(client.getNickName(), channel_it->first, toBeRemoved));
+    addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(toBeRemoved, channel_it->first));
     return true;
 }
 
@@ -98,7 +96,7 @@ static std::string getModesToRemove(Server *server, const int client_fd, cmd_str
             }
             else {
                 addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
-                return;
+                return NULL;
             }
         }
     }
@@ -120,7 +118,7 @@ static std::string getModesToAdd(Server *server, const int client_fd, cmd_struct
             }
             else {
                 addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
-                return;
+                return NULL;
             }
         }
     }

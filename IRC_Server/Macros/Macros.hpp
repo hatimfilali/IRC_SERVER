@@ -49,6 +49,9 @@
 #define ERR_NICKNAMEINUSE( nickname) (":localhost 433 " + nickname + " :Nickname is already in use.\r\n")
 
 
+#define CHECK_STRING_SIZE(str) ((strlen(str) > 1024) ? 1024 : strlen(str))
+
+
 
 #endif
 

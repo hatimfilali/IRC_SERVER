@@ -5,6 +5,7 @@ Channel::Channel(std::string const &name) : ChannelName(name), capacity(-1) {
     bannedUsers.clear();
     topic.clear();
     kickedUsers.clear();
+    operators.clear();
 }
 
 Channel::~Channel () {}
@@ -126,13 +127,14 @@ bool Channel::isOperator(std::string operatorName) {
     return false;
 }
 
+void Channel::addFirstOperator(std::string operatorName) {
+    operators.clear();
+    operators.push_back(operatorName);
+}
+
 void Channel::addOperator(std::string operatorName) {
-    if(operators.empty()) {
-        operators.push_back(operatorName);
-        return;
-    }
     std::vector<std::string>::iterator it;
-    for(it == operators.begin(); it != operators.end(); it++) {
+    for(it = operators.begin(); it != operators.end(); it++) {
         if(*it == operatorName) {
             std::cout << operatorName << " is already an operator in channel " << getName() << std::endl;
             return;

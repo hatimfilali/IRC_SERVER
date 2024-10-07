@@ -19,8 +19,16 @@ void join(Server *server, int client_fd, cmd_struct cmd_info) {
 
         std::map<std::string, Channel> &ChannelList = server->getChannels();
         std::map<std::string, Channel>::iterator it = ChannelList.find(channelName);
+        for (std::vector<std::string>::iterator oper = it->second.getOperators().begin(); oper < it->second.getOperators().begin(); oper++)
+        {
+            std::cout << "operator: " << *oper << std::endl;
+        }
         if (it == ChannelList.end()) {
             addChannel(server, channelName);
+            std::cout << clientNickName << "<----------" << std::endl;
+            it = ChannelList.find(channelName);
+            it->second.addFirstOperator(clientNickName);
+            std::cout << " first operator added to channel: @"<< client.getNickName() << " #" << channelName << "\n";
             // std::cout<< "channel added: " << channelName << "\n";
         }
         // else if(it->second.getMod().find("k") != std::string::npos) {
@@ -42,13 +50,11 @@ void join(Server *server, int client_fd, cmd_struct cmd_info) {
                 addToClientBuffer(server, client_fd, ERR_BANNEDFROMCHANNEL(clientNickName, channelName));
             else {
                 if(addClientToChannel(server, channelName, client) == true) { 
-                    if(it->second.getOperators().empty()) {
-                        it->second.addOperator(clientNickName);
-                        std::cout << " first operator added to channel: @"<< client.getNickName() << " #" << channelName << "\n";
-                    }
                     sendChannelInfo(server, it->second, channelName, client);
+                    
                     // std::cout << "hna mzyan"<<std::endl;
                 }
             }
     }
+    
 }

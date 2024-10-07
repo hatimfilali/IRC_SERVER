@@ -77,7 +77,11 @@ void Client::setsendReady(bool _sendReady)
 }
 void Client::setReadBuffer(const char buffer[1024])
 {
-    readBuffer += buffer;
+    if(buffer[0] == '\0')
+        readBuffer = buffer;
+    else
+        readBuffer += buffer;
+    // std::cout << getReadBuffer() << std::endl;
 }
 void Client::setReadReady(bool ready)
 {
@@ -110,8 +114,8 @@ void Client::setSendBuffer(std::string const &buff) {
 
 bool Client::isReady(const char buffer[1024])
 {
-    const char* result = strstr(buffer, "\n\r");
-    if(result)
+    const char* result = strstr(buffer, "\r\n");
+    if(result != NULL)
         return true;
     return false;
 }
