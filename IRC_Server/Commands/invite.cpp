@@ -27,6 +27,12 @@ void invite(Server *server, int const client_fd, cmd_struct cmd_info) {
         addToClientBuffer(server, client_fd, ERR_USERONCHANNEL(clientNickName, invitedClient, channelName));
         return;
     }
+    //check if the channel has reached it's limit
+    if (it->second.getCapacity() != -1 && it->second.getCapacity() == it->second.getUsers().size()) {
+        addToClientBuffer(server, client_fd, ERR_CHANNELISFULL(client.getNickName(), it->first));
+        return;
+    }
+    
     addToClientBuffer(server, client_fd, RPL_INVITING(user_id(clientNickName, client.getUserName()), clientNickName, invitedClient, channelName));
     std::map<int, Client> &clients = server->getClients();
     std::map<int, Client>::iterator iter = clients.begin();

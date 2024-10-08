@@ -5,12 +5,15 @@
 #define FAILURE -1
 #define BREAK 2
 #define CONTINUE 3
-#define VALID_LENGTH 6
+#define VALID_LENGTH 7
 
 #define user_id(nickname, username) (":" + nickname + "!" + username + "@localhost")
 
 //PARSING
 #define ERR_UNKNONKCOMMAND(client, command) (":localhost 421 " + client + " #" + command + " :Unknown command\r\n")
+
+//PASS
+# define ERR_INVALIDPASS(client) (":localhost 464 " + client + " :Password incorrect.\r\n")
 
 //INVITE
 #define ERR_NEEDMOREPARAMS(client, command) (":localhost 461 " + client + " " + command + " :Not enough patameters.\r\n")
@@ -45,6 +48,9 @@
 #define ERR_USERNOTINCHANNEL(client, nickname, channel) ("441 " + client + " " + nickname + " #" + channel + " :They arn't on that channel\r\n")
 #define ERR_NOTCHANNELOP(client, channel) (":localhost 482 " + client + " #" + channel + " :You are not the channel operator\r\n")
 #define RPL_KICK(user_id, channel, kicked, reason) (user_id + " KICK #" + channel + " " + kicked + " " + reason + "\r\n")
+
+//BAN
+#define RPL_BANNED(user_id, channel, banned, reson) (user_id + "BANNED #" + channel + " " + banned + " " + reason + "\r\n")
 
 //NICK
 #define ERR_NONICKNAMEGIVEN(client) (":localhost 431 " + client + " :There is no nickname.\r\n")

@@ -26,6 +26,10 @@ void join(Server *server, int client_fd, cmd_struct cmd_info) {
             it->second.addFirstOperator(clientNickName);
         }
         else {
+            if (it->second.getCapacity() != 1 && it->second.getCapacity() == it->second.getUsers().size()){
+                addToClientBuffer(server, client_fd, ERR_CHANNELISFULL(client.getNickName(), it->first));
+                continue;
+            }
             if(it->second.getMod().find("k") != std::string::npos || it->second.getMod().find("i") != std::string::npos) {
                 if (it->second.getMod().find("i") != std::string::npos)
                     continue;

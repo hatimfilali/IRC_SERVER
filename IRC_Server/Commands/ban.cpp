@@ -1,17 +1,18 @@
 #include "Commands.hpp"
 
-void kick(Server *server, int const client_fd, cmd_struct cmd_info) {
-    Client& requester = retrieveClient(server, client_fd);
+void ban(Server *server, int const client_fd, cmd_struct cmd_info) {
+    Client &requester = retrieveClient(server, client_fd);
     std::string requesterNickName = requester.getNickName();
     std::string channelName = getChannelName(cmd_info.msg);
-    std::string kickedName = getKickedName(cmd_info.msg);
+    std::string bannedName = getKickedName(cmd_info.msg);
     std::string reason = getReason(cmd_info.msg);
+
+    reason = (reason.empty()) ? ":Has been BANNED by operator." : reason;
 
     std::map<std::string, Channel> &channels = server->getChannels();
     std::map<std::string, Channel>::iterator it_chan = channels.find(channelName);
-    reason = (reason.empty()) ? ":Has been KICKED by operator." : reason;
 
-    if(channelName.empty() || kickedName.empty()){
+    if(channelName.empty() || bannedName.empty()){
         addToClientBuffer(server, client_fd, ERR_NEEDMOREPARAMS(requesterNickName, cmd_info.name));
         return;
     }
@@ -23,8 +24,8 @@ void kick(Server *server, int const client_fd, cmd_struct cmd_info) {
         addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(requesterNickName, channelName));
         return;
     }
-    else if(!it_chan->second.isChannelClient(kickedName)){
-        addToClientBuffer(server, client_fd, ERR_USERNOTINCHANNEL(requesterNickName, kickedName, channelName));
+    else if(!it_chan->second.isChannelClient(bannedName)){
+        addToClientBuffer(server, client_fd, ERR_USERNOTINCHANNEL(requesterNickName, bannedName, channelName));
         return;
     }
     else if (!it_chan->second.isOperator(requesterNickName)){
@@ -35,10 +36,10 @@ void kick(Server *server, int const client_fd, cmd_struct cmd_info) {
     else {
         std::map<std::string, Client>::iterator member = it_chan->second.getUsers().begin();
         while (member != it_chan->second.getUsers().end()) {
-            addToClientBuffer(server, member->second.getFD(), RPL_KICK(user_id(requester.getNickName(), requester.getUserName()), it_chan->second.getName(), kickedName, reason));
+            addToClientBuffer(server, member->second.getFD(), RPL_BANNED(user_id(requester.getNickName(), requester.getUserName()), it_chan->second.getName(), bannedName, reason));
             member++;
         }
-        it_chan->second.getUsers().erase(kickedName);
-        it_chan->second.addToKicked(kickedName);
+        it_chan->second.getUsers().erase(bannedName);
+        it_chan->second.addToBanned(bannedName);
     }
 }
