@@ -5,7 +5,7 @@
 #define FAILURE -1
 #define BREAK 2
 #define CONTINUE 3
-#define VALID_LENGTH 7
+#define VALID_LENGTH 8
 
 #define user_id(nickname, username) (":" + nickname + "!" + username + "@localhost")
 
