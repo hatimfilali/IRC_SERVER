@@ -132,7 +132,9 @@ void Server::GetMsgFromClients()
             
 
             if(bytes_received < 0)
+            {
                 std::cout << "Got error while receiving data from client"<<std::endl;
+            }
             else if(bytes_received == 0)
             {
                 close(it->first);

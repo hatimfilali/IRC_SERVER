@@ -205,13 +205,12 @@ void sendChannelInfo(Server *server, Channel &channel, std::string channelName, 
 std::string getKickedName(std::string msg) {
     std::string kickedName;
     kickedName.clear();
-    size_t pos = msg.find(":");
-    if(pos==std::string::npos)
-        return kickedName;
-    msg.erase(0, pos+1);
-    pos= msg.find(" ");
-    kickedName = msg.substr(0, pos);
-
+    size_t pos = msg.find(getChannelName(msg));
+    pos += getChannelName(msg).length();
+    while(msg.at(pos) == ' ')
+        pos++;
+    msg.erase(0, pos);
+    kickedName = msg.substr(0, msg.find(" "));
     return kickedName;
 }
 
