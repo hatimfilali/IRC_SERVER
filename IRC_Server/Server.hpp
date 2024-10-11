@@ -25,6 +25,9 @@ class Server
         Server();
         Server(std::string Password, int Port);
         ~Server();
+        int getFd() {
+            return _ServerSocket;
+        };
         void setPassword(std::string Password);
         void setPort(int Port);
         std::map<std::string, Channel> &getChannels();
@@ -37,6 +40,7 @@ class Server
         void GetMsgFromClients();
         void SendResponse();
         void CloseSocket();
+        void SendJoin(int fd);
 };
 
 #endif

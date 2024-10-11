@@ -29,8 +29,10 @@ int parse_cmd(std::string cmd_line, cmd_struct &cmd_info) {
     
     //Message
     size_t msg_begin = cmd_line.find_first_of(cmd_info.name, 0) + cmd_info.name.length();
-    cmd_info.msg = cmd_line.substr(msg_begin, std::string::npos);
-    cmd_info.msg.erase(cmd_info.msg.find('\r'), 1);
+    cmd_info.msg = cmd_line.substr(msg_begin);
+    if (cmd_info.msg.find("\r") != cmd_info.msg.npos)
+        cmd_info.msg.erase(cmd_info.msg.find('\r'), 1);
+    std::cout << "ana dkhalt" << std::endl;
 
     for (size_t i = 0; i < cmd_info.name.size(); i++) {
         cmd_info.name[i] = std::toupper(cmd_info.name[i]);
@@ -44,7 +46,9 @@ int parse_cmd(std::string cmd_line, cmd_struct &cmd_info) {
 void addToClientBuffer(Server *server, int const client_fd, std::string reply) {
     Client &client = retrieveClient(server, client_fd);
     client.setSendBuffer(reply);
-    client.setsendReady(true);
+    std::cout <<reply <<std::endl;
+    // client.setsendReady(true);
+    server->SendJoin(client_fd);
 }
 
 Client &retrieveClient(Server *server, int const client_fd) {
@@ -182,11 +186,18 @@ bool addClientToChannel(Server *server, std::string &channelName, Client &client
 
 void sendChannelInfo(Server *server, Channel &channel, std::string channelName, Client &client) {
     std::string clientNickName = client.getNickName();
-    std::string clientUserName = client.getUserName();
 
     std::map<std::string, Client>::iterator member =channel.getUsers().begin();
     while(member != channel.getUsers().end()) {
-        addToClientBuffer(server, member->second.getFD(), RPL_JOIN(user_id(clientNickName, clientUserName), channelName));
+        // std::cout << "client fd:" << member->second.getFD()  << "  " <<  RPL_JOIN(clientNickName, channelName) << std::endl;
+        // std::cout << "Server fd: " << server->getFd() << std::endl;
+        addToClientBuffer(server, member->second.getFD(), RPL_JOIN(clientNickName, channelName));
+        addToClientBuffer(server, member->second.getFD(), RPL_TOPIC(member->second.getNickName(), channel.getName(), channel.getTopic()));
+        // std::cout << "USERS: " << RPL_NAMEREPLY(member->second.getNickName(), channel.getName(), getListOfmembers(member->second.getNickName(), channel)) << std::endl;
+        addToClientBuffer(server, member->second.getFD(), RPL_NAMEREPLY(member->second.getNickName(), channel.getName(), getListOfmembers(member->second.getNickName(), channel)));
+        addToClientBuffer(server, member->second.getFD(), RPL_ENDOFNAMES(member->second.getNickName(), channel.getName()));
+        if(member->second.getNickName() == clientNickName)
+            addToClientBuffer(server, member->second.getFD(), RPL_CHANNELMODES(member->second.getNickName(),channel.getName(), channel.getMod()));   
     member++;
     }
 }
@@ -234,6 +245,7 @@ static void splitMsg(std::vector<std::string> &cmds, std::string cmd_line) {
 void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) {
     cmd_struct cmd_info;
     Client client = retrieveClient(server, client_fd);
+    // std::cout <<" ReadBuffer is "<< cmd_info.name << std::endl;
     std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK", "MODE", "BOT"};
     // std::cout << "recieved : " << rcvBuffer << " from: " << client_fd << std::endl;
     if (parse_cmd(rcvBuffer, cmd_info) == FAILURE) 
@@ -245,12 +257,14 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
             break;
         i++;
     }
+    std::cout <<" i + 1 hya :  "<< i + 1 << std::endl;
     switch (i + 1)
     {
     case 1:
         invite(server,client_fd, cmd_info);
         break;
     case 2:
+        std::cout <<" rcvBuffer is "<< rcvBuffer << std::endl;
         join(server, client_fd, cmd_info);
         break;
     case 3:
@@ -280,6 +294,7 @@ void getCommandLine(Server *server, int const client_fd, std::string cmd_line){
     
     for (size_t i = 0; i < cmds.size(); i++)
     {
+        
         executeCommand(server, client_fd, cmds[i]);
     }
     Client &client = retrieveClient(server, client_fd);

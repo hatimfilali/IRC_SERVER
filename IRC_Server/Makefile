@@ -2,7 +2,7 @@ NAME = ircserv
 SRCS = main.cpp Server.cpp Client.cpp Channel/Channel.cpp Commands/invite.cpp Commands/join.cpp Commands/kick.cpp Commands/privmsg.cpp Commands/tools.cpp Commands/topic.cpp Commands/mode.cpp Commands/bot.cpp
 OBJS = $(SRCS:.cpp=.o)
 CPP = c++
-CPPFLAGS =-std=c++98 -fsanitize=address -g3
+CPPFLAGS =-std=c++98 
 
 all: $(NAME)
 

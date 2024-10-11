@@ -2,7 +2,7 @@
 
 Channel::Channel(std::string const &name) : ChannelName(name), capacity(-1) {
     users.clear();
-    topic.clear();
+    topic = "NO TOPIC IS SET";
     kickedUsers.clear();
     operators.clear();
 }

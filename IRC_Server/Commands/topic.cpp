@@ -29,7 +29,10 @@ static void changeChannelTopic(Server *server, const int client_fd, cmd_struct c
         return;
     }
     channel_it->second.setTopic(param);//->change of the topic
-    addToClientBuffer(server, client_fd, RPL_TOPIC(client_it->second.getNickName(), channelName, channel_it->second.getTopic()));
+    for (std::map<std::string, Client>::iterator it = channel_it->second.getUsers().begin(); it != channel_it->second.getUsers().end(); it++)
+    {
+    addToClientBuffer(server, it->second.getFD(), RPL_TOPIC(it->second.getNickName(), channelName, channel_it->second.getTopic()));
+    }
 }
 
 void topic(Server *server, int const client_fd, cmd_struct cmd_info) {

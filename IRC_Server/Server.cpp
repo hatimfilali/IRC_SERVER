@@ -142,11 +142,12 @@ void Server::GetMsgFromClients()
             else
             {
                 it->second.setReadBuffer(it->second.buffer);
-                it->second.setReadReady(it->second.isReady(it->second.buffer));
+                // bool ready = it->second.isReady(it->second.buffer);
+                // it->second.setReadReady(ready);
                 // memset(it->second.buffer, 0, sizeof(it->second.buffer));
-                std::cout <<" ReadBuffer is "<< it->second.getReadBuffer() << std::endl;
-                if(it->second.getReadReady() == true)
-                    getCommandLine(this, it->first, it->second.getReadBuffer());
+                // std::cout <<" ReadBuffer is "<< it->second.getReadBuffer() << std::endl;
+                // if(it->second.getReadReady() == true)
+                getCommandLine(this, it->first, it->second.getReadBuffer());
                 // std::cout << it->second.getReadBuffer() <<std::endl;
             }
         }
@@ -174,6 +175,24 @@ void Server::SendResponse()
                 it->second.setsendReady(false);
             }
         }
+    }
+}
+
+void Server::SendJoin(int fd)
+{
+    std::map<int,Client>::iterator it = _Clients.find(fd);
+    ssize_t bytes_sent = send(it->first, it->second.getsednBuffer().c_str(),CHECK_STRING_SIZE(it->second.getsednBuffer().c_str()), 0);
+    if (bytes_sent < 0) {
+        std::cout << "Got error while sending data to client"<<std::endl;
+    }
+    std::string str = it->second.getsednBuffer();
+    str.erase(0, CHECK_STRING_SIZE(str.c_str()));
+    it->second.setSendBuffer(str);
+    // std::cout << "------------------hadaaaa test : ---------------" << it->second.getsednBuffer()<<std::endl;
+    if(it->second.getsednBuffer().empty())
+    {
+        // std::cout << "dkhol"<<std::endl;
+        it->second.setsendReady(false);
     }
 }
 

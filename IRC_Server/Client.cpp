@@ -115,6 +115,7 @@ void Client::setSendBuffer(std::string const &buff) {
 bool Client::isReady(const char buffer[1024])
 {
     const char* result = strstr(buffer, "\r\n");
+    std::cout << "result :" << result << std::endl;
     if(result != NULL)
         return true;
     return false;

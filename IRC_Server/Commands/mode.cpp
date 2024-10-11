@@ -195,16 +195,16 @@ static void changeChannelMode(Server *server, const int client_fd, cmd_struct cm
 
 }
 
+void showchannelMode(Server *server,std::string nickname, const int client_fd, Channel &channel) {
+    addToClientBuffer(server, client_fd, RPL_CHANNELMODES(nickname, channel.getName(), channel.getMod()));
+}
+
 void mode(Server *server, int const client_fd, cmd_struct cmd_info) {
     std::map<int, Client>::iterator client_it = server->getClients().find(client_fd);
     std::string channelName = findChannel(cmd_info.msg);
 
     if(cmd_info.msg.empty()) {
         addToClientBuffer(server, client_fd, ERR_NEEDMOREPARAMS(client_it->second.getNickName(), cmd_info.name));
-        return;
-    }
-    if(channelName.empty()) {
-        addToClientBuffer(server, client_fd, ERR_NOCHANNELGIVEN(client_it->second.getNickName(), cmd_info.name));
         return;
     }
     if(channelName.empty()) {
@@ -224,6 +224,9 @@ void mode(Server *server, int const client_fd, cmd_struct cmd_info) {
             return;
         }
         op++;
+    }
+    if (op != channel_it->second.getOperators().end() && channel_it->second.getUsers().find(*op) != channel_it->second.getUsers().end()) {
+        showchannelMode(server, *op, client_fd, channel_it->second);
     }
     addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(client_it->second.getNickName(), channelName));
 }
