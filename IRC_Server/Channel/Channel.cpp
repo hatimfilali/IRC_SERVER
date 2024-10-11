@@ -2,7 +2,6 @@
 
 Channel::Channel(std::string const &name) : ChannelName(name), capacity(-1) {
     users.clear();
-    bannedUsers.clear();
     topic.clear();
     kickedUsers.clear();
     operators.clear();
@@ -25,8 +24,6 @@ std::string  &Channel::getOperatorPassword() {return operatorPassword;}
 int &Channel::getCapacity() {return capacity;}
 
 std::map<std::string, Client> &Channel::getUsers() {return users;}
-
-std::vector<std::string> &Channel::getBannedUsers() {return bannedUsers;}
 
 std::vector<std::string> &Channel::getKickedUsers() {return kickedUsers;}
 
@@ -79,41 +76,6 @@ void Channel::addToKicked(std::string &clientName) {
     return;
 }
 
-void Channel::addToBanned(std::string &clientName) {
-    std::vector<std::string>::iterator it;
-    for (it = bannedUsers.begin(); it != bannedUsers.end(); it++) {
-        if (*it == clientName){
-            std::cout << clientName << " has already been banned from channel " << getName() << std::endl;
-            return;
-        }
-    }
-    bannedUsers.push_back(clientName);
-    std::cout << clientName << " is now banned from channel " << getName() << std::endl;
-}
-
-void Channel::removeFromBanned(std::string &clientName) {
-    std::vector<std::string>::iterator it;
-    for(it = bannedUsers.begin(); it != bannedUsers.end(); it++) {
-        if(*it == clientName) {
-            bannedUsers.erase(it);
-            std::cout << clientName << " is no more banned from channel " << getName() << std::endl;
-            return;
-        }
-    }
-    std::cout << clientName << " has never been banned from channel " << getName() << std::endl;
-}
-
-bool Channel::isBanned(std::string &clientName) {
-    if(bannedUsers.empty() == true)
-        return false;
-    std::cout << "bannedlist is not empty";
-    for(std::vector<std::string>::iterator it = bannedUsers.begin(); it != bannedUsers.end(); it++) {
-        if(*it == clientName)
-            return true;
-    }
-    return false;
-}
-
 //Operators Management
 
 bool Channel::isOperator(std::string operatorName) {
@@ -145,7 +107,8 @@ void Channel::addOperator(std::string operatorName) {
 
 void Channel::removeOperator(std::string operatorName) {
     std::vector<std::string>::iterator it;
-    for(it = operators.begin(); it != operators.end(); it++) {
+    std::cout << "OPER:" << operatorName<<std::endl;
+    for(it = operators.begin(); it < operators.end(); it++) {
         if(*it == operatorName)
             operators.erase(it);
     }
@@ -156,13 +119,15 @@ void Channel::removeOperator(std::string operatorName) {
 void Channel::addMode(std::string const mode) {
     if (mod.empty())
         mod = mode;
-    else 
+    else if(mod.find(mode) == mode.npos)
         mod += mode;
 }
 
 void Channel::removeMode(std::string const mode) {
     size_t pos = mod.find(mode);
-    mod.erase(pos, 1);
+    std::cout << "MODEIS :" << mod <<std::endl;
+    if(pos != mode.npos)
+        mod = mod.erase(pos, 1);
 }
 
 void Channel::removeChannelPassword() {

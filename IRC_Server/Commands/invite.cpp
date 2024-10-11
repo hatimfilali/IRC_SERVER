@@ -39,10 +39,10 @@ void invite(Server *server, int const client_fd, cmd_struct cmd_info) {
     while (iter != clients.end()) {
         if (iter->second.getNickName() == invitedClient) {
             addToClientBuffer(server, iter->second.getFD(), RPL_INVITE(user_id(clientNickName, client.getUserName()), invitedClient, channelName));
+            if (addClientToChannel(server, channelName, iter->second) == true)
+                sendChannelInfo(server, it->second, channelName, iter->second);
             break;
         }   
+        iter++;
     }
-    if (addClientToChannel(server, channelName, iter->second) == true)
-        sendChannelInfo(server, it->second, channelName, iter->second);
-    
 }

@@ -23,7 +23,10 @@ void join(Server *server, int client_fd, cmd_struct cmd_info) {
         if (it == ChannelList.end()) {
             addChannel(server, channelName);
             it = ChannelList.find(channelName);
-            it->second.addFirstOperator(clientNickName);
+            if(addClientToChannel(server, channelName, client) == true)  {
+                sendChannelInfo(server, it->second, channelName, client);
+                it->second.addFirstOperator(clientNickName);
+            }
         }
         else {
             if (it->second.getCapacity() != 1 && it->second.getCapacity() == it->second.getUsers().size()){

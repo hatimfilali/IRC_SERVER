@@ -1,13 +1,6 @@
 #include "Commands.hpp"
 
 void broadcastToChannel(Server *server, int const client_fd, std::map<int, Client>::iterator it_client, std::map<std::string, Channel>::iterator it_channel, std::string target, std::string msgToSend) {
-    std::vector<std::string> bannedusers = it_channel->second.getBannedUsers();
-    for(std::vector<std::string>::iterator it_banned = bannedusers.begin(); it_banned != bannedusers.end(); it_banned++) { 
-        if(it_client->second.getNickName() == *it_banned){
-            std::cout << "[Server] " << *it_banned << " is banned from channel and can't send messages no more." << std::endl;
-            return;
-        }
-    }
     std::vector<std::string> kickedUsers = it_channel->second.getKickedUsers();
     for (std::vector<std::string>::iterator it_kicked = kickedUsers.begin(); it_kicked != kickedUsers.end(); it_kicked++)
     {

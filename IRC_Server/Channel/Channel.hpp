@@ -14,7 +14,6 @@ class Channel {
         std::string operatorPassword;
         int capacity;
         std::map<std::string, Client> users;
-        std::vector<std::string> bannedUsers;
         std::vector<std::string> kickedUsers;
         std::vector<std::string> operators;
 
@@ -32,7 +31,6 @@ class Channel {
         std::string                     &getOperatorPassword();
         int                             &getCapacity();
         std::map<std::string, Client>   &getUsers();
-        std::vector<std::string>    &getBannedUsers();
         std::vector<std::string>    &getKickedUsers();
         std::vector<std::string>    &getOperators();
         void                        setTopic(std::string newTopic);
@@ -45,9 +43,6 @@ class Channel {
         void                        removeClient(std::string &clientName);
 
         void                        addToKicked(std::string &clientName);
-        void                        addToBanned(std::string &clientName);
-        void                        removeFromBanned(std::string &clientName);
-        bool                        isBanned(std::string &clientName);
 
         //Operators Management
         void                        addFirstOperator(std::string operatorName);

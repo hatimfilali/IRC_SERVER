@@ -5,7 +5,7 @@
 #define FAILURE -1
 #define BREAK 2
 #define CONTINUE 3
-#define VALID_LENGTH 8
+#define VALID_LENGTH 7
 
 #define user_id(nickname, username) (":" + nickname + "!" + username + "@localhost")
 
@@ -38,7 +38,7 @@
 
 
 //PRIVMSG
-#define ERR_NORECIPIENT(client) ("411 " + client + " :No recipieent given PRIVMSG")
+#define ERR_NORECIPIENT(client) ("411 " + client + " :No recipieent given PRIVMSG\r\n")
 #define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
 #define ERR_NOSUCHNICK(client, target) ("401 " + client + " " + target + " :No such nick/channel\r\n")
 #define RPL_PRIVMSG(nick, username, target, message) (":" + nick + "!" + username + " PRIVMSG " + target + " :" + message + "\r\n")

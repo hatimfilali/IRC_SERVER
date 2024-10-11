@@ -20,6 +20,7 @@ static void changeChannelTopic(Server *server, const int client_fd, cmd_struct c
     size_t pos = cmd_info.msg.find(":");
     if(pos == std::string::npos){//----->if ther is no topic (no ":" in the message)
         showChannelTopic(server, client_fd, cmd_info, channelName);
+        return;
     }
     std::string param = cmd_info.msg.substr(pos + 1, std::string::npos);
     if (param.empty()) {//---->unset channel topic
@@ -42,7 +43,7 @@ void topic(Server *server, int const client_fd, cmd_struct cmd_info) {
         addToClientBuffer(server, client_fd, ERR_NOCHANNELGIVEN(client_it->second.getNickName(), cmd_info.name));
         return;
     }
-    std::string channelName = cmd_info.msg.substr(pos + 1, std::string::npos);
+    std::string channelName = findChannel(cmd_info.msg);
     std::map<std::string, Channel>::iterator channel_it = server->getChannels().find(channelName);
     if (channel_it == server->getChannels().end()) {
         addToClientBuffer(server, client_fd, ERR_NOSUCHCHANNEL(client_it->second.getNickName(), channel_it->first));

@@ -39,7 +39,6 @@ void  privmsg(Server *server, int const client_fd, cmd_struct cmd_info);
 void kick(Server *server, int const client_fd, cmd_struct cmd_info);
 void topic(Server *server, int const client_fd, cmd_struct cmd_info);
 void mode(Server *server, int const client_fd, cmd_struct cmd_info);
-void ban(Server *server, int const client_fd, cmd_struct cmd_info);
 void bot(Server &server, int client_fd, cmd_struct cmd_info);
 
 #endif

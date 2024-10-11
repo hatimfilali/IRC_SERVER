@@ -101,10 +101,8 @@ std::string findNickname(std::string msg) {
     nickName.clear();
     if (msg.empty() == true)
         return nickName;
-    char *str = const_cast<char *>(msg.data());
-    nickName = strtok(str, " ");
-    if(nickName.empty() || nickName.find("#") != nickName.npos)
-        nickName.clear();
+   size_t pos = msg.rfind(" ");
+   nickName = msg.substr(pos + 1);
     return nickName;
 }
 
@@ -125,8 +123,12 @@ std::string findChannel(std::string msg) { // msg example : INVITE timu #channel
     if (msg.empty() || msg.find("#") == msg.npos) {
         ChannelName.clear();
         }
-    else
-        ChannelName.append(msg, msg.find("#") + 1, msg.npos);
+    else{
+        size_t pos = msg.find("#");
+        msg = msg.substr(pos);
+        pos = (msg.find(" ") != msg.npos) ? msg.find(" ") - 1 : msg.npos;
+        ChannelName = msg.substr(1, pos);
+    }
     return ChannelName;
 }
 
@@ -158,16 +160,10 @@ void addChannel(Server *server, std::string channelName) {
 std::string retrieveKey(std::string msg) {
     std::string key;
     key.clear();
-    msg = msg.substr(msg.find_last_of(" "), msg.npos);
-    
-    if (msg[0] == ' ')
-        msg.erase(0, 1);
-    int pos = msg.find(",") == 0 ? msg.find(",") + 1 : 0;
-    while(msg[pos] != ',' || msg[pos]) {
-        if (msg[pos] == '-' || msg[pos] == '_' || isalpha(msg[pos]) || isdigit(msg[pos])) 
-            key += msg[pos];
-        pos++;
-    }
+    size_t pos = msg.rfind(" ");
+    if (msg.at(pos + 1) == '#')
+        return key;
+    key = msg.substr(pos + 1);
     return key;
 }
 
@@ -238,7 +234,7 @@ static void splitMsg(std::vector<std::string> &cmds, std::string cmd_line) {
 void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) {
     cmd_struct cmd_info;
     Client client = retrieveClient(server, client_fd);
-    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK", "MODE", "BAN", "BOT"};
+    std::string validCommands[VALID_LENGTH] = {"INVITE", "JOIN", "TOPIC", "PRIVMSG", "KICK", "MODE", "BOT"};
     // std::cout << "recieved : " << rcvBuffer << " from: " << client_fd << std::endl;
     if (parse_cmd(rcvBuffer, cmd_info) == FAILURE) 
         return;
@@ -269,8 +265,6 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
     case 6:
         mode(server, client_fd, cmd_info);
     case 7:
-        ban(server, client_fd, cmd_info);
-    case 8:
         bot(*server, client_fd, cmd_info);
     default:
         addToClientBuffer(server, client_fd, ERR_UNKNONKCOMMAND(client.getNickName(), cmd_info.name));

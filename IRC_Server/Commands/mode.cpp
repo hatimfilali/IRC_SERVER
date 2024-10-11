@@ -26,28 +26,30 @@ static bool promoteToOp(Server *server, int const client_fd, std::map<std::strin
         return true;
     }
     for(std::vector<std::string>::iterator it = channel_it->second.getOperators().begin(); it < channel_it->second.getOperators().end(); it++) {
+        std::cout << "HERE..."  << *it << std::endl;
         if (*it == client.getNickName()) {
-            addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(client.getNickName(), channel_it->first));
+            for(std::vector<std::string>::iterator it = channel_it->second.getOperators().begin(); it < channel_it->second.getOperators().end(); it++) {
+                if (*it == toBeOperator) {
+                    addToClientBuffer(server, client_fd, ERR_CLIENTALREDYOP(client.getNickName(), channel_it->first, toBeOperator));
+                    return true;
+                }
+            }
+            user = channel_it->second.getUsers().find(toBeOperator);
+            if(user == channel_it->second.getUsers().end()){
+                addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(toBeOperator, channel_it->first));
+                return true;
+            }
+            channel_it->second.addOperator(toBeOperator);
+            addToClientBuffer(server, client_fd, RPL_ADDEDOPERATOR(client.getNickName(), channel_it->first, toBeOperator));
             return true;
         }
     }
-    for(std::vector<std::string>::iterator it = channel_it->second.getOperators().begin(); it < channel_it->second.getOperators().end(); it++) {
-        if (*it == toBeOperator) {
-            addToClientBuffer(server, client_fd, ERR_CLIENTALREDYOP(client.getNickName(), channel_it->first, toBeOperator));
-            return true;
-        }
-    }
-    user = channel_it->second.getUsers().find(toBeOperator);
-    if(user == channel_it->second.getUsers().end()){
-        addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(toBeOperator, channel_it->first));
-        return true;
-    }
-    channel_it->second.addOperator(toBeOperator);
-    addToClientBuffer(server, client_fd, RPL_ADDEDOPERATOR(client.getNickName(), channel_it->first, toBeOperator));
     return true;
 }
 
 static bool downGradeOp(Server *server, const int client_fd, std::map<std::string, Channel>::iterator &channel_it, cmd_struct cmd_info) {
+    if (cmd_info.msg.find("-o ") == std::string::npos)
+        return false;
     Client &client = retrieveClient(server, client_fd);
     std::string toBeRemoved = getROp(cmd_info.msg);
     std::map<std::string, Client>::iterator user = channel_it->second.getUsers().find(client.getNickName());
@@ -57,44 +59,33 @@ static bool downGradeOp(Server *server, const int client_fd, std::map<std::strin
     }
     for(std::vector<std::string>::iterator it = channel_it->second.getOperators().begin(); it < channel_it->second.getOperators().end(); it++) {
         if (*it == client.getNickName()) {
-            addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(client.getNickName(), channel_it->first));
+            std::vector<std::string>::iterator it = channel_it->second.getOperators().begin();
+            while (it != channel_it->second.getOperators().end())
+            {
+                if(*it == toBeRemoved){
+                    channel_it->second.removeOperator(toBeRemoved);
+                    addToClientBuffer(server, client_fd, RPL_REMOVEDOPERATOR(client.getNickName(), channel_it->first, toBeRemoved));
+                    return true;
+                }
+                it++;
+            }
+            addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(toBeRemoved, channel_it->first));
             return true;
         }
     }
-    std::vector<std::string>::iterator it = channel_it->second.getOperators().begin();
-    while (it != channel_it->second.getOperators().end())
-    {
-        if(*it == toBeRemoved){
-            channel_it->second.removeOperator(toBeRemoved);
-            addToClientBuffer(server, client_fd, RPL_REMOVEDOPERATOR(client.getNickName(), channel_it->first, toBeRemoved));
-            return true;
-        }
-        it++;
-    }
-    addToClientBuffer(server, client_fd, ERR_NOTONCHANNEL(toBeRemoved, channel_it->first));
+    addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(client.getNickName(), channel_it->first));
     return true;
 }
 
 static std::string getModesToRemove(Server *server, const int client_fd, cmd_struct cmd_info) {
     std::string modesToremove;
     modesToremove.clear();
-    while (size_t plusPos = cmd_info.msg.find("-") != std::string::npos) {
-        std::string mode = cmd_info.msg.substr(plusPos + 1, cmd_info.msg.find(" "));
-        if(mode.empty())
-            return mode;
-        cmd_info.msg.erase(cmd_info.msg.find(mode), mode.size());
-        for(size_t i = 0; i < mode.size(); i++) {
-            if(mode.at(i) == 'i' || mode.at(i) == 't' || mode.at(i) == 'k' || mode.at(i) == 'o' || mode.at(i) == 'l') {
-                modesToremove += mode.at(i);
-                i++;
-            }
-            else {
-                addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
-                modesToremove.clear();
-                return modesToremove;
-            }
-        }
-    }
+    size_t minusPos = cmd_info.msg.find("-");
+    if (minusPos == cmd_info.msg.npos)
+        return modesToremove;
+    else
+        if( cmd_info.msg.at(minusPos + 1) != ' ' &&  cmd_info.msg.at(minusPos + 1) !=  cmd_info.msg.npos)
+            modesToremove = cmd_info.msg.at(minusPos + 1); 
     if (modesToremove.size() != 1){
         addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
         modesToremove.clear();
@@ -106,23 +97,12 @@ static std::string getModesToRemove(Server *server, const int client_fd, cmd_str
 static std::string getModesToAdd(Server *server, const int client_fd, cmd_struct cmd_info) {
     std::string modesToAdd;
     modesToAdd.clear();
-    while (size_t plusPos = cmd_info.msg.find("+") != std::string::npos) {
-        std::string mode = cmd_info.msg.substr(plusPos + 1, cmd_info.msg.find(" "));
-        if(mode.empty())
-            return mode;
-        cmd_info.msg.erase(cmd_info.msg.find(mode), mode.size());
-        for(size_t i = 0; i < mode.size(); i++) {
-            if(mode.at(i) == 'i' || mode.at(i) == 't' || mode.at(i) == 'k' || mode.at(i) == 'o' || mode.at(i) == 'l') {
-                modesToAdd += mode.at(i);
-                i++;
-            }
-            else {
-                addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
-                modesToAdd.clear();
-                return modesToAdd;
-            }
-        }
-    }
+    size_t plusPos = cmd_info.msg.find("+");
+    if (plusPos == cmd_info.msg.npos)
+        return modesToAdd;
+    else
+        if( cmd_info.msg.at(plusPos + 1) != ' ' &&  cmd_info.msg.at(plusPos + 1) !=  cmd_info.msg.npos)
+            modesToAdd = cmd_info.msg.at(plusPos + 1); 
     if (modesToAdd.size() != 1){
         addToClientBuffer(server, client_fd, ERR_BADMODEPARAM(server->getClients().find(client_fd)->second.getNickName(), cmd_info.name));
         modesToAdd.clear();
@@ -133,69 +113,74 @@ static std::string getModesToAdd(Server *server, const int client_fd, cmd_struct
 
 static void chanModed(Server *server, const int client_fd, Channel &channel, std::string mode, std::string modeMsg) {
     if(mode == "+k") {
-        if (modeMsg.empty())
-            //no password given
+        if (modeMsg.empty()) {
+            addToClientBuffer(server, client_fd, "MODE: Password not presented\r\n");
+            return;
+        }
         channel.setPassword(modeMsg);
+        addToClientBuffer(server, client_fd, "MODE: Password updated\r\n");
     }
-    else if (mode == "-k")
+    else if (mode == "-k") {
         channel.setPassword("");
-    if (mode == "+l") {
-        if (modeMsg.empty())
-            //no limit given
-        channel.setCapacity(atoi(modeMsg.c_str()));
+        addToClientBuffer(server, client_fd, "MODE: Password removed\r\n");
     }
-    else if(mode == "-l" )
+    if (mode == "+l") {
+        if (modeMsg.empty()) {
+            addToClientBuffer(server, client_fd, "MODE: limit not presented\r\n");
+            return;
+        }
+        channel.setCapacity(atoi(modeMsg.c_str()));
+        addToClientBuffer(server, client_fd, "MODE: limit updated\r\n");
+    }
+    else if(mode == "-l" ){
         channel.setCapacity(-1);
+        addToClientBuffer(server, client_fd, "MODE: limit removed\r\n");
+    }
 }
 
 static void addModes(Server *server, const int client_fd, std::map<std::string, Channel>::iterator &channel_it, std::string addedModes, std::string modeMsg) {
-    bool add;
+    bool add = true;
     std::string toAdd;
     toAdd.clear();
-    for (size_t j = 0; j < addedModes.size(); j++) {
-        add = true;
-        for (size_t i = 0; i < channel_it->second.getTopic().size(); i++) {
-            if (channel_it->second.getTopic().at(i) == addedModes.at(j))
-                add = false;
-        }
-        if(add == true) {
-            toAdd += addedModes.at(j);
-        }
+    for (size_t i = 0; i < channel_it->second.getMod().size(); i++) {
+        if (channel_it->second.getMod().at(i) == addedModes.at(0))
+            add = false;
+    }
+    if(add == true) {
+        toAdd = addedModes.at(0);
     }
     if(!toAdd.empty()) {
         channel_it->second.addMode(toAdd);
-        chanModed(server, client_fd, channel_it->second, toAdd, modeMsg);
+        chanModed(server, client_fd, channel_it->second, "+" + toAdd, modeMsg);
     }
 }
 
 static void removeModes(Server *server, const int client_fd, std::map<std::string, Channel>::iterator &channel_it, std::string removedModes) {
-    bool remove;
+    bool remove = false;
     std::string toRemove;
     toRemove.clear();
-    for (size_t i = 0; i < removedModes.size(); i++) {
-        remove = true;
-        for (size_t j = 0; i < channel_it->second.getTopic().size(); j++) {
-            if (removedModes.at(i) == channel_it->second.getTopic().at(j))
-                remove = false;
-        }
-        if(remove == true)
-            toRemove += removedModes.at(i);
+    for (size_t j = 0; j < channel_it->second.getMod().size(); j++) {
+        if (removedModes.at(0) == channel_it->second.getMod().at(j))
+            remove = true;
     }
-    if(!toRemove.empty())
+    if(remove == true)
+        toRemove = removedModes.at(0);
+    if(!toRemove.empty()) {
         channel_it->second.removeMode(toRemove);
+        chanModed(server, client_fd, channel_it->second, "-" + toRemove, "");
+    }
     
 }
 
 static std::string getMessage(std::string str) {
     std::string msg;
-    size_t pos = str.rfind("+");
-    size_t mpos = str.rfind("-");
+    size_t pos = str.find("+");
+    size_t mpos = str.find("-");
     if(pos != std::string::npos || mpos != std::string::npos) {
-        msg = str.substr(str.rfind(" "));
+        msg = str.substr(str.rfind(" ") + 1);
         return msg;
     }
-    msg.clear();
-    return msg;
+    return "";
 }
 
 static void changeChannelMode(Server *server, const int client_fd, cmd_struct cmd_info, std::string channelName) {
@@ -212,17 +197,16 @@ static void changeChannelMode(Server *server, const int client_fd, cmd_struct cm
 
 void mode(Server *server, int const client_fd, cmd_struct cmd_info) {
     std::map<int, Client>::iterator client_it = server->getClients().find(client_fd);
+    std::string channelName = findChannel(cmd_info.msg);
 
     if(cmd_info.msg.empty()) {
         addToClientBuffer(server, client_fd, ERR_NEEDMOREPARAMS(client_it->second.getNickName(), cmd_info.name));
         return;
     }
-    size_t chanPos = cmd_info.msg.find("#");
-    if(chanPos == std::string::npos) {
+    if(channelName.empty()) {
         addToClientBuffer(server, client_fd, ERR_NOCHANNELGIVEN(client_it->second.getNickName(), cmd_info.name));
         return;
     }
-    std::string channelName = cmd_info.msg.substr(chanPos + 1, cmd_info.msg.find(" "));
     if(channelName.empty()) {
         addToClientBuffer(server, client_fd, ERR_NOCHANNELGIVEN(client_it->second.getNickName(), cmd_info.name));
         return;
