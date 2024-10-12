@@ -47,7 +47,7 @@ class Client
         void setSendBuffer(std::string const &buff);
         void setReadBuffer(const char buffer[1024]);
         std::string SearchNext(std::string searched);
-        bool isReady(const char buffer[1024]);
+        bool isReady(const char buffer[1024] );
 };
 
 

@@ -32,7 +32,6 @@ int parse_cmd(std::string cmd_line, cmd_struct &cmd_info) {
     cmd_info.msg = cmd_line.substr(msg_begin);
     if (cmd_info.msg.find("\r") != cmd_info.msg.npos)
         cmd_info.msg.erase(cmd_info.msg.find('\r'), 1);
-    std::cout << "ana dkhalt" << std::endl;
 
     for (size_t i = 0; i < cmd_info.name.size(); i++) {
         cmd_info.name[i] = std::toupper(cmd_info.name[i]);
@@ -44,9 +43,12 @@ int parse_cmd(std::string cmd_line, cmd_struct &cmd_info) {
 //reply
 
 void addToClientBuffer(Server *server, int const client_fd, std::string reply) {
-    Client &client = retrieveClient(server, client_fd);
-    client.setSendBuffer(reply);
-    std::cout <<reply <<std::endl;
+    std::map<int, Client> & clientList = server->getClients();
+    std::map<int, Client>::iterator it = clientList.find(client_fd);
+    if (it == clientList.end())
+        return;
+
+    it->second.setSendBuffer(reply);
     // client.setsendReady(true);
     server->SendJoin(client_fd);
 }
@@ -152,10 +154,8 @@ bool ContainAtLeastOneAlphaChar(std::string msg) {
 void addChannel(Server *server, std::string channelName) {
     std::map<std::string, Channel> &channelList = server->getChannels();
     std::map<std::string, Channel>::iterator it = channelList.find(channelName);
-    if(it != channelList.end()) {
-        std::cout << "Channel name already exists, Please enter another name";
+    if(it != channelList.end())
         return;
-    }
     Channel channel(channelName);
     server->getChannels().insert(std::pair<std::string, Channel>(channelName, channel));
     // std::cout <<"channel added: "<< server->getChannels().find(channelName)->second.getName() << "\n";
@@ -256,14 +256,12 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
             break;
         i++;
     }
-    std::cout <<" i + 1 hya :  "<< i + 1 << std::endl;
     switch (i + 1)
     {
     case 1:
         invite(server,client_fd, cmd_info);
         break;
     case 2:
-        std::cout <<" rcvBuffer is "<< rcvBuffer << std::endl;
         join(server, client_fd, cmd_info);
         break;
     case 3:
@@ -277,8 +275,10 @@ void executeCommand(Server *server, int const client_fd, std::string rcvBuffer) 
         break;
     case 6:
         mode(server, client_fd, cmd_info);
+        break;
     case 7:
         bot(*server, client_fd, cmd_info);
+        break;
     default:
         addToClientBuffer(server, client_fd, ERR_UNKNONKCOMMAND(client.getNickName(), cmd_info.name));
         break;

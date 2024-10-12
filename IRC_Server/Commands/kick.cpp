@@ -11,7 +11,7 @@ void kick(Server *server, int const client_fd, cmd_struct cmd_info) {
     std::map<std::string, Channel>::iterator it_chan = channels.find(channelName);
     reason = (reason.empty()) ? ":Has been KICKED by operator." : reason;
 
-    std::cout << "CHannel name : " << channelName << " | Kicked name : "<< kickedName << std::endl;
+    // std::cout << "CHannel name : " << channelName << " | Kicked name : "<< kickedName << std::endl;
 
     if(channelName.empty() || kickedName.empty()){
         addToClientBuffer(server, client_fd, ERR_NEEDMOREPARAMS(requesterNickName, cmd_info.name));
@@ -30,7 +30,7 @@ void kick(Server *server, int const client_fd, cmd_struct cmd_info) {
         return;
     }
     else if (!it_chan->second.isOperator(requesterNickName)){
-        std::cout << "operator " << requesterNickName << std::endl;
+        // std::cout << "operator " << requesterNickName << std::endl;
         addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(requesterNickName, channelName));
         return;
     }

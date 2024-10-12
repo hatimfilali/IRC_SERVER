@@ -24,8 +24,8 @@ void join(Server *server, int client_fd, cmd_struct cmd_info) {
             addChannel(server, channelName);
             it = ChannelList.find(channelName);
             if(addClientToChannel(server, channelName, client) == true)  {
-                sendChannelInfo(server, it->second, channelName, client);
                 it->second.addFirstOperator(clientNickName);
+                sendChannelInfo(server, it->second, channelName, client);
             }
         }
         else {
@@ -34,8 +34,10 @@ void join(Server *server, int client_fd, cmd_struct cmd_info) {
                 continue;
             }
             if(it->second.getMod().find("k") != std::string::npos || it->second.getMod().find("i") != std::string::npos) {
-                if (it->second.getMod().find("i") != std::string::npos)
+                if (it->second.getMod().find("i") != std::string::npos){
+                    
                     continue;
+                }
                 std::string key = retrieveKey(cmd_info.msg);
                 cmd_info.msg.erase(cmd_info.msg.find(key), key.length());
                 if (it->second.getPassword() != key) {

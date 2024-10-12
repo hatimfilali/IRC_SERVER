@@ -26,7 +26,6 @@ static bool promoteToOp(Server *server, int const client_fd, std::map<std::strin
         return true;
     }
     for(std::vector<std::string>::iterator it = channel_it->second.getOperators().begin(); it < channel_it->second.getOperators().end(); it++) {
-        std::cout << "HERE..."  << *it << std::endl;
         if (*it == client.getNickName()) {
             for(std::vector<std::string>::iterator it = channel_it->second.getOperators().begin(); it < channel_it->second.getOperators().end(); it++) {
                 if (*it == toBeOperator) {
@@ -219,14 +218,23 @@ void mode(Server *server, int const client_fd, cmd_struct cmd_info) {
     std::vector<std::string>::iterator op = channel_it->second.getOperators().begin();
     while (op != channel_it->second.getOperators().end()) {
         if(*op == client_it->second.getNickName()) {
-            if(!promoteToOp(server, client_fd, channel_it, cmd_info) && !downGradeOp(server, client_fd, channel_it, cmd_info))
+            if(!promoteToOp(server, client_fd, channel_it, cmd_info) && !downGradeOp(server, client_fd, channel_it, cmd_info)) {
                 changeChannelMode(server, client_fd, cmd_info, channelName);
+                showchannelMode(server, *op, client_fd, channel_it->second);
+            }
             return;
         }
         op++;
     }
-    if (op != channel_it->second.getOperators().end() && channel_it->second.getUsers().find(*op) != channel_it->second.getUsers().end()) {
-        showchannelMode(server, *op, client_fd, channel_it->second);
+    size_t pos = cmd_info.msg.find('#');
+    cmd_info.msg.erase(0, pos);
+    for(pos = 0; pos < cmd_info.msg.size() - 1; pos++){
+        if (cmd_info.msg.at(pos) == ' ')
+            break;
+    }
+    if (op == channel_it->second.getOperators().end() && channel_it->second.getUsers().find(client_it->second.getNickName()) != channel_it->second.getUsers().end() && pos >= cmd_info.msg.size() - 1) {
+        showchannelMode(server, client_it->second.getNickName(), client_fd, channel_it->second);
+        return;
     }
     addToClientBuffer(server, client_fd, ERR_NOTCHANNELOP(client_it->second.getNickName(), channelName));
 }

@@ -45,6 +45,7 @@ void Server::Listening()
 
 void Server::AddTo_FD_Set()
 {
+    // std::cout << "saad" << std::endl;
     FD_ZERO(&read_fds);                
     FD_SET(_ServerSocket, &read_fds);
 
@@ -81,10 +82,10 @@ void Server::CheckForIncomingConnection()
                 std::cout << "Client disconnected" << std::endl;
             }else
             {
-                if(_Password != client.SearchNext("PASS"))
+                if(_Password != client.SearchNext("PASS") )
                 {
                     close(new_socket);
-                    std::cout << "Invalid Password" <<std::endl;
+                    // std::cout << "Invalid Password" <<std::endl;
                 }
                 else if(CheckUserExist(client.SearchNext("NICK")) == true)
                 {
@@ -101,7 +102,17 @@ void Server::CheckForIncomingConnection()
                     client.setUserName(client.SearchNext("USER"));
                     client.setFD(new_socket);
                     _Clients[new_socket] = client;
-                    std::cout << "New connection on socket " << _Clients[new_socket].getNickName() << " with fd client  : " << client.getFD() <<" fd client map is : "<<_Clients[new_socket].getFD()<< " and new socket :"<< new_socket<< std::endl;    
+                    std::cout << "New connection on socket " << _Clients[new_socket].getNickName() << " with fd client  : " << client.getFD() << std::endl;
+                    for(std::map<std::string,Channel>::iterator it = getChannels().begin(); it != getChannels().end(); ++it)
+                    {
+                        if(it->second.getUsers().find( _Clients[new_socket].getNickName()) != it->second.getUsers().end())
+                        {
+                            addToClientBuffer(this, new_socket, RPL_JOIN(_Clients[new_socket].getNickName(),it->second.getName()));
+                            addToClientBuffer(this, new_socket, RPL_NAMEREPLY(_Clients[new_socket].getNickName(), it->second.getName(), getListOfmembers(_Clients[new_socket].getNickName(), it->second)));
+                            addToClientBuffer(this, new_socket, RPL_ENDOFNAMES(_Clients[new_socket].getNickName(), it->second.getName()));
+
+                        }
+                    }
                 }
             }
         }
@@ -140,16 +151,18 @@ void Server::GetMsgFromClients()
                 close(it->first);
                 _Clients.erase(it->first);
                 std::cout << "Client disconnected" << std::endl;
+                break;
             }
             else
             {
                 it->second.setReadBuffer(it->second.buffer);
-                // bool ready = it->second.isReady(it->second.buffer);
-                // it->second.setReadReady(ready);
+                 
+                bool ready = it->second.isReady(it->second.buffer);
+                it->second.setReadReady(ready);
                 // memset(it->second.buffer, 0, sizeof(it->second.buffer));
                 // std::cout <<" ReadBuffer is "<< it->second.getReadBuffer() << std::endl;
-                // if(it->second.getReadReady() == true)
-                getCommandLine(this, it->first, it->second.getReadBuffer());
+                if(it->second.getReadReady() == true)
+                    getCommandLine(this, it->first, it->second.getReadBuffer());
                 // std::cout << it->second.getReadBuffer() <<std::endl;
             }
         }
@@ -183,6 +196,10 @@ void Server::SendResponse()
 void Server::SendJoin(int fd)
 {
     std::map<int,Client>::iterator it = _Clients.find(fd);
+    if (it == _Clients.end()) {
+        return;
+    }
+    
     ssize_t bytes_sent = send(it->first, it->second.getsednBuffer().c_str(),CHECK_STRING_SIZE(it->second.getsednBuffer().c_str()), 0);
     if (bytes_sent < 0) {
         std::cout << "Got error while sending data to client"<<std::endl;
